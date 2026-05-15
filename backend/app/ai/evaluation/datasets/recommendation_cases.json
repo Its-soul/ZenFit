@@ -1,0 +1,17 @@
+[
+  {
+    "name": "missed_workout_generates_high_priority",
+    "event_type": "workout.missed",
+    "context": {"dashboard": {"readiness_score": 72}},
+    "expected_category": "workout",
+    "minimum_confidence": 0.8
+  },
+  {
+    "name": "poor_sleep_generates_recovery_recommendation",
+    "event_type": "sleep.poor",
+    "context": {"dashboard": {"readiness_score": 48}},
+    "expected_category": "recovery",
+    "minimum_confidence": 0.85
+  }
+]
+

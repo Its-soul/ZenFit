@@ -1,0 +1,12 @@
+{
+  "name": "ai-fitness-os",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up --build",
+    "dev:down": "docker compose down",
+    "dev:logs": "docker compose logs -f",
+    "backend:shell": "docker compose exec backend bash",
+    "frontend:shell": "docker compose exec frontend sh"
+  }
+}
+

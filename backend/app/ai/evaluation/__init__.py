@@ -1,0 +1,2 @@
+"""Lightweight AI evaluation framework."""
+
