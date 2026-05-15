@@ -1,0 +1,15 @@
+node_modules/
+.next/
+dist/
+build/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.env.local
+uploads/
+postgres_data/
+redis_data/
+qdrant_data/
+
