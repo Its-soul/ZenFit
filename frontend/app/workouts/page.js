@@ -35,7 +35,7 @@ export default function WorkoutsPage() {
   return (
     <ProtectedFeaturePage
       title="Workouts"
-      description="Track sessions now. Missed and completed workouts already create backend domain events for the AI layer."
+      description="Plan your sessions and keep your week flexible when real life changes."
     >
       <form className="grid gap-3 rounded-xl border border-white/10 bg-[#0f131d] p-4 md:grid-cols-5" onSubmit={handleSubmit}>
         <Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />

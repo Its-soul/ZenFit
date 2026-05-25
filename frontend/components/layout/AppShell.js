@@ -1,19 +1,19 @@
 "use client";
 
-import { Activity, BarChart3, Bot, Brain, LogOut, Moon, Salad, Settings, Sparkles } from "lucide-react";
+import { Activity, Bot, CalendarDays, HeartPulse, LogOut, Moon, Salad, Settings, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Sparkles },
+  { href: "/dashboard", label: "Today", icon: Sparkles },
   { href: "/workouts", label: "Workouts", icon: Activity },
   { href: "/nutrition", label: "Nutrition", icon: Salad },
-  { href: "/recovery", label: "Recovery", icon: Brain },
+  { href: "/recovery", label: "Recovery", icon: HeartPulse },
   { href: "/sleep", label: "Sleep", icon: Moon },
-  { href: "/coach", label: "AI Coach", icon: Bot },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/coach", label: "Coach", icon: Bot },
+  { href: "/analytics", label: "Progress", icon: CalendarDays },
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
@@ -25,12 +25,12 @@ export function AppShell({ children, user, onLogout }) {
       <div className="mx-auto flex max-w-7xl gap-5">
         <aside className="panel sticky top-4 hidden h-[calc(100vh-2rem)] w-64 shrink-0 rounded-xl p-4 md:block">
           <div className="flex items-center gap-3 px-2 py-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-950">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zenCream text-slate-950">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-semibold">AI Fitness OS</p>
-              <p className="text-xs text-muted">Adaptive command center</p>
+              <p className="font-semibold">ZenFit</p>
+              <p className="text-xs text-muted">Daily fitness coach</p>
             </div>
           </div>
 

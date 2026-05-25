@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "AI Fitness OS"
+    app_name: str = "ZenFit"
     api_v1_prefix: str = "/api/v1"
     backend_cors_origins: str = "http://localhost:3000"
 
@@ -32,4 +32,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-

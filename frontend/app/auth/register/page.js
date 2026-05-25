@@ -31,14 +31,14 @@ export default function RegisterPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="glass w-full max-w-md rounded-2xl p-8">
+      <div className="panel w-full max-w-md rounded-2xl p-8">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-limeGlow text-slate-950">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-zenCream text-slate-950">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold">Create your OS</h1>
-            <p className="text-sm text-muted">Start with your goals. Intelligence comes next.</p>
+            <h1 className="text-xl font-semibold">Start with ZenFit</h1>
+            <p className="text-sm text-muted">Create a calmer way to stay consistent.</p>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-muted">
           Already have an account?{" "}
-          <Link className="font-medium text-cyanGlow" href="/auth/login">
+          <Link className="font-medium text-zenSage" href="/auth/login">
             Sign in
           </Link>
         </p>
@@ -76,4 +76,3 @@ export default function RegisterPage() {
     </main>
   );
 }
-

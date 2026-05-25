@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "AI Fitness OS",
-  description: "Adaptive AI-first fitness operating system"
+  title: "ZenFit",
+  description: "Your adaptive daily fitness coach"
 };
 
 export default function RootLayout({ children }) {
@@ -12,4 +12,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-

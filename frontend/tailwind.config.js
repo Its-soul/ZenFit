@@ -10,12 +10,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#070A12",
-        panel: "rgba(255,255,255,0.08)",
+        background: "#070907",
+        panel: "#101610",
         borderSoft: "rgba(255,255,255,0.14)",
-        cyanGlow: "#59F6E8",
-        limeGlow: "#B6F36B",
-        coralGlow: "#FF7A7A"
+        cyanGlow: "#8FE8C5",
+        limeGlow: "#BEEA75",
+        coralGlow: "#F6A66D",
+        zenCream: "#F5F1E8",
+        zenSage: "#8FE8C5",
+        zenGold: "#F6C779"
       },
       boxShadow: {
         glass: "0 24px 80px rgba(0, 0, 0, 0.35)",
@@ -25,4 +28,3 @@ module.exports = {
   },
   plugins: []
 };
-

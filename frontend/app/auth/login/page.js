@@ -31,14 +31,14 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="glass w-full max-w-md rounded-2xl p-8">
+      <div className="panel w-full max-w-md rounded-2xl p-8">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyanGlow text-slate-950">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-zenCream text-slate-950">
             <Activity className="h-5 w-5" />
           </div>
           <div>
             <h1 className="text-xl font-semibold">Welcome back</h1>
-            <p className="text-sm text-muted">Sign in to your adaptive fitness OS.</p>
+            <p className="text-sm text-muted">Open your plan for today.</p>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-muted">
           New here?{" "}
-          <Link className="font-medium text-cyanGlow" href="/auth/register">
+          <Link className="font-medium text-zenSage" href="/auth/register">
             Create account
           </Link>
         </p>
@@ -71,4 +71,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

@@ -1,2 +1,1 @@
-"""AI Fitness OS backend package."""
-
+"""ZenFit backend package."""

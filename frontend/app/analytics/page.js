@@ -1,11 +1,12 @@
 "use client";
 
+import { CalendarCheck, HeartPulse, Moon, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ProtectedFeaturePage } from "@/components/layout/ProtectedFeaturePage";
 import { getAnalyticsHistory, getLatestWeeklyReport, getPredictiveAnalytics } from "@/services/analyticsService";
 
-function MiniTrendChart({ title, points, valueKey, maxValue, tone = "bg-cyanGlow" }) {
+function MiniTrendChart({ title, points, valueKey, maxValue, tone = "bg-zenSage" }) {
   const interval = Math.max(1, Math.floor(points.length / 42));
   const sampled = points.filter((_, index) => index % interval === 0);
 
@@ -16,18 +17,35 @@ function MiniTrendChart({ title, points, valueKey, maxValue, tone = "bg-cyanGlow
         {sampled.map((point) => {
           const rawValue = point[valueKey] || 0;
           const height = Math.max(4, Math.round((rawValue / maxValue) * 100));
-          return (
-            <div
-              key={`${point.date}-${valueKey}`}
-              className={`w-full rounded-t ${tone}`}
-              style={{ height: `${Math.min(height, 100)}%` }}
-              title={`${point.date}: ${rawValue}`}
-            />
-          );
+          return <div key={`${point.date}-${valueKey}`} className={`w-full rounded-t ${tone}`} style={{ height: `${Math.min(height, 100)}%` }} />;
         })}
       </div>
     </div>
   );
+}
+
+function progressCards(analytics) {
+  const predictions = analytics?.predictions || {};
+  return [
+    {
+      title: "Consistency outlook",
+      value: predictions.workout_completion_probability ? `${Math.round(predictions.workout_completion_probability.score * 100)}%` : "Building",
+      helper: "Chance you keep momentum this week",
+      icon: CalendarCheck
+    },
+    {
+      title: "Recovery balance",
+      value: predictions.recovery_decline?.level ? predictions.recovery_decline.level : "Steady",
+      helper: "How your body is handling training",
+      icon: HeartPulse
+    },
+    {
+      title: "Nutrition rhythm",
+      value: predictions.calorie_adherence_consistency ? `${Math.round(predictions.calorie_adherence_consistency.score * 100)}%` : "Learning",
+      helper: "How consistent meal logging feels",
+      icon: TrendingUp
+    }
+  ];
 }
 
 export default function AnalyticsPage() {
@@ -44,69 +62,55 @@ export default function AnalyticsPage() {
     load();
   }, []);
 
-  const personalizationItems = analytics?.personalization
-    ? [
-        ["Coaching style", analytics.personalization.coaching_style?.replaceAll("_", " ") || "Balanced guidance"],
-        ["Preferred days", analytics.personalization.preferred_workout_days?.join(", ") || "Still learning"],
-        ["Meal rhythm", analytics.personalization.common_meal_hours?.map((hour) => `${hour}:00`).join(", ") || "Still learning"],
-        ["Fatigue triggers", analytics.personalization.fatigue_triggers?.join(", ") || "No strong trigger yet"],
-        ["Motivation triggers", analytics.personalization.motivation_triggers?.join(", ") || "Still learning"]
-      ]
-    : [];
-
   return (
     <ProtectedFeaturePage
-      title="Analytics"
-      description="Predictive behavior analytics, recovery forecasts, personalization signals, and weekly AI reports."
+      title="Progress"
+      description="A simple view of what is improving, what needs care, and what to focus on next."
     >
       <div className="grid gap-4 md:grid-cols-3">
-        {Object.entries(analytics?.predictions || {}).map(([key, value]) => (
-          <div key={key} className="panel rounded-xl p-4">
-            <p className="text-sm capitalize text-muted">{key.replaceAll("_", " ")}</p>
-            <p className="mt-2 text-3xl font-semibold">{Math.round(value.score * 100)}%</p>
-            <p className="mt-1 text-sm text-muted">Confidence {Math.round(value.confidence * 100)}% - {value.level}</p>
-            <p className="mt-3 text-xs text-muted">{value.explanation}</p>
-          </div>
-        ))}
+        {progressCards(analytics).map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.title} className="panel rounded-xl p-4">
+              <Icon className="h-5 w-5 text-zenSage" />
+              <p className="mt-4 text-sm text-muted">{item.title}</p>
+              <p className="mt-2 text-3xl font-semibold capitalize">{item.value}</p>
+              <p className="mt-2 text-sm text-muted">{item.helper}</p>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <MiniTrendChart title="Readiness history" points={history?.points || []} valueKey="readiness_score" maxValue={100} tone="bg-limeGlow" />
-        <MiniTrendChart title="Calories logged" points={history?.points || []} valueKey="calories" maxValue={3200} tone="bg-coralGlow" />
-        <MiniTrendChart title="Sleep hours" points={history?.points || []} valueKey="sleep_hours" maxValue={9} tone="bg-cyanGlow" />
+        <MiniTrendChart title="Recovery trend" points={history?.points || []} valueKey="readiness_score" maxValue={100} tone="bg-zenSage" />
+        <MiniTrendChart title="Meal energy" points={history?.points || []} valueKey="calories" maxValue={3200} tone="bg-zenGold" />
+        <MiniTrendChart title="Sleep rhythm" points={history?.points || []} valueKey="sleep_hours" maxValue={9} tone="bg-coralGlow" />
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <section className="panel rounded-xl p-4">
-          <h2 className="font-semibold">Detected trends</h2>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <TrendingUp className="h-4 w-4 text-zenSage" />
+            Helpful patterns
+          </h2>
           <div className="mt-4 space-y-3">
             {(analytics?.trends || []).map((trend) => (
               <div key={trend.name} className="soft-panel rounded-xl p-3">
                 <p className="text-sm font-semibold">{trend.name}</p>
-                <p className="text-sm text-muted">{trend.summary}</p>
+                <p className="text-sm leading-6 text-muted">{trend.summary}</p>
               </div>
             ))}
-            {!analytics?.trends?.length ? <p className="text-sm text-muted">No strong trends detected yet.</p> : null}
+            {!analytics?.trends?.length ? <p className="text-sm text-muted">ZenFit is still learning your rhythm.</p> : null}
           </div>
         </section>
 
         <section className="panel rounded-xl p-4">
-          <h2 className="font-semibold">Personalization profile</h2>
-          <div className="mt-4 space-y-3">
-            {personalizationItems.map(([label, value]) => (
-              <div key={label} className="soft-panel rounded-xl p-3">
-                <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-                <p className="mt-1 text-sm capitalize text-slate-100">{value}</p>
-              </div>
-            ))}
-            {!personalizationItems.length ? <p className="text-sm text-muted">Loading personalization signals...</p> : null}
-          </div>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <Moon className="h-4 w-4 text-zenSage" />
+            Weekly reflection
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-muted">{report?.summary || "Your weekly reflection will appear after more activity."}</p>
         </section>
-      </div>
-
-      <div className="panel mt-5 rounded-xl p-4">
-        <h2 className="font-semibold">Weekly AI report</h2>
-        <p className="mt-3 text-sm leading-6 text-muted">{report?.summary || "Loading report..."}</p>
       </div>
     </ProtectedFeaturePage>
   );
