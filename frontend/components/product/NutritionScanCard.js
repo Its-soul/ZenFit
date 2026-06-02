@@ -4,7 +4,32 @@ import { motion } from "framer-motion";
 import { Camera, CheckCircle2, ScanLine, Utensils } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+
+const resultInputStyle = {
+  backgroundColor: "#ffffff",
+  color: "#121711",
+  WebkitTextFillColor: "#121711"
+};
+
+function EstimateInput({ label, value, suffix = "", ...props }) {
+  const displayValue = value === "" || value == null ? "Not set" : value;
+
+  return (
+    <label className="block rounded-2xl border border-[#8FE8C5]/35 bg-[#121711] p-4 shadow-sm">
+      <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-zenSage">{label}</span>
+      <span className="mt-2 block min-h-7 truncate text-2xl font-semibold leading-7 text-white">
+        {displayValue}
+        {suffix}
+      </span>
+      <input
+        className="mt-3 w-full rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold outline-none transition focus:border-[#47745f] focus:ring-2 focus:ring-[#8FE8C5]/35"
+        style={resultInputStyle}
+        value={value}
+        {...props}
+      />
+    </label>
+  );
+}
 
 export function NutritionScanCard({ previewUrl, progress, analysis, form, onFile, onFormChange, onSave }) {
   return (
@@ -45,18 +70,30 @@ export function NutritionScanCard({ previewUrl, progress, analysis, form, onFile
           ) : null}
 
           {analysis ? (
-            <div className="mt-5 rounded-3xl bg-zenCream p-5 text-[#121711]">
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <CheckCircle2 className="h-4 w-4" />
+            <div className="mt-5 rounded-3xl bg-zenCream p-5 text-[#121711] shadow-[0_18px_45px_rgba(0,0,0,0.18)]">
+              <p className="flex items-center gap-2 text-sm font-semibold text-[#263525]">
+                <CheckCircle2 className="h-4 w-4 text-[#47745f]" />
                 Meal estimate ready
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <Input className="border-black/10 bg-white text-[#121711]" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} />
-                <Input className="border-black/10 bg-white text-[#121711]" value={form.meal_type} onChange={(event) => onFormChange({ ...form, meal_type: event.target.value })} />
-                <Input className="border-black/10 bg-white text-[#121711]" type="number" value={form.calories} onChange={(event) => onFormChange({ ...form, calories: Number(event.target.value) })} />
-                <Input className="border-black/10 bg-white text-[#121711]" type="number" value={form.protein_g} onChange={(event) => onFormChange({ ...form, protein_g: Number(event.target.value) })} />
+                <EstimateInput label="Meal" value={form.name} onChange={(event) => onFormChange({ ...form, name: event.target.value })} />
+                <EstimateInput label="Type" value={form.meal_type} onChange={(event) => onFormChange({ ...form, meal_type: event.target.value })} />
+                <EstimateInput
+                  label="Calories"
+                  type="number"
+                  value={form.calories}
+                  suffix=" kcal"
+                  onChange={(event) => onFormChange({ ...form, calories: Number(event.target.value) })}
+                />
+                <EstimateInput
+                  label="Protein (g)"
+                  type="number"
+                  value={form.protein_g}
+                  suffix="g"
+                  onChange={(event) => onFormChange({ ...form, protein_g: Number(event.target.value) })}
+                />
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-700">{analysis.explanation}</p>
+              <p className="mt-4 text-sm leading-6 text-slate-800">{analysis.explanation}</p>
               <Button className="mt-5 bg-[#121711] text-white hover:bg-[#1f291d]" onClick={onSave}>
                 <Utensils className="h-4 w-4" />
                 Looks right

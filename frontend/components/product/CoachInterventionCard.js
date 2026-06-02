@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/Input";
 const prompts = ["I'm tired today", "Shorten my workout", "What should I eat?", "Keep me accountable", "I missed yesterday"];
 
 export function CoachInterventionCard({ momentum, reply, input, loading, onInputChange, onAsk }) {
+  const suggestedPrompts = Array.from(new Set([momentum.coachPrompt, ...prompts].filter(Boolean))).slice(0, 6);
+
   return (
     <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="panel rounded-[1.5rem] p-6">
       <div className="flex items-start justify-between gap-4">
@@ -30,7 +32,7 @@ export function CoachInterventionCard({ momentum, reply, input, loading, onInput
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {[momentum.coachPrompt, ...prompts].filter(Boolean).slice(0, 6).map((prompt) => (
+        {suggestedPrompts.map((prompt) => (
           <button
             key={prompt}
             onClick={() => onAsk(prompt)}
