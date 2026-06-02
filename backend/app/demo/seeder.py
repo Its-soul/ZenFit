@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.ai.analytics.behavior_patterns import BehavioralPatternAnalyzer
 from app.ai.analytics.predictors import PredictiveAnalyticsEngine
+from app.ai.nutrition.targets import NutritionTargetCalculator
 from app.ai.reports import AIWeeklyReport
 from app.ai.memory.ingestion import MemoryIngestionPipeline
 from app.ai.recommendations.candidate_generator import RecommendationCandidateGenerator
@@ -86,6 +87,10 @@ class DemoDataSeeder:
                 fitness_level=profile.fitness_level,
                 preferred_training_days=profile.training_days,
                 preferred_unit="metric",
+                weight_kg=profile.weight_kg,
+                height_cm=profile.height_cm,
+                age=profile.age,
+                biological_sex=profile.biological_sex,
                 onboarding_complete=True,
             )
         )
@@ -175,7 +180,7 @@ class DemoDataSeeder:
         simulation: DaySimulation,
         event_memory_ids: dict[str, list[str]],
     ) -> None:
-        dashboard_context = self._dashboard_like_context(simulation)
+        dashboard_context = self._dashboard_like_context(user=user, simulation=simulation)
         for event in events:
             if event.event_type not in {"workout.missed", "sleep.poor", "recovery.low", "meal.logged"}:
                 continue
@@ -373,17 +378,26 @@ class DemoDataSeeder:
             return "medium"
         return "low"
 
-    def _dashboard_like_context(self, simulation: DaySimulation) -> dict:
+    def _dashboard_like_context(self, *, user: User, simulation: DaySimulation) -> dict:
         calories = sum(meal["calories"] for meal in simulation.meals)
         protein = round(sum(meal["protein_g"] for meal in simulation.meals), 1)
+        profile = self.db.scalar(select(UserProfile).where(UserProfile.user_id == user.id))
+        targets = NutritionTargetCalculator().calculate(
+            weight_kg=getattr(profile, "weight_kg", None),
+            height_cm=getattr(profile, "height_cm", None),
+            age=getattr(profile, "age", None),
+            biological_sex=getattr(profile, "biological_sex", None),
+            training_frequency=getattr(profile, "preferred_training_days", None),
+            goal=getattr(profile, "primary_goal", None),
+        )
         return {
             "readiness_score": simulation.recovery["readiness_score"],
             "today_workout": simulation.workout or {},
             "nutrition": {
                 "calories": calories,
                 "protein_g": protein,
-                "calorie_target": 2200,
-                "protein_target_g": 150,
+                "calorie_target": targets["calorie_target"],
+                "protein_target_g": targets["protein_target_g"],
             },
         }
 

@@ -15,6 +15,10 @@ class DemoUserProfile:
     meal_consistency: float
     fatigue_bias: float
     workout_focus: str
+    weight_kg: float = 70
+    height_cm: float = 170
+    age: int = 30
+    biological_sex: str = "prefer_not_to_say"
     password: str = "DemoPass123!"
 
 
@@ -90,4 +94,3 @@ DEMO_USERS = [
         workout_focus="Hypertrophy Progression",
     ),
 ]
-

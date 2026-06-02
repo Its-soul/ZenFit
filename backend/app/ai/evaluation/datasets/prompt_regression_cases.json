@@ -6,7 +6,7 @@
       "dashboard": {
         "readiness_score": 42,
         "today_workout": {"title": "Upper Body Strength", "status": "scheduled", "planned_intensity": "moderate"},
-        "nutrition": {"calories": 900, "protein_g": 45, "calorie_target": 2200, "protein_target_g": 150}
+        "nutrition": {"calories": 900, "protein_g": 45, "calorie_target": 2390, "protein_target_g": 112}
       }
     },
     "must_include": ["readiness", "low"],
@@ -19,7 +19,7 @@
       "dashboard": {
         "readiness_score": 68,
         "today_workout": {"title": "Full Body Foundation", "status": "missed", "planned_intensity": "moderate"},
-        "nutrition": {"calories": 1200, "protein_g": 70, "calorie_target": 2200, "protein_target_g": 150}
+        "nutrition": {"calories": 1200, "protein_g": 70, "calorie_target": 2390, "protein_target_g": 112}
       },
       "behavior_memory": {
         "adherence_patterns": ["User missed a workout. Planned intensity was moderate."],
@@ -30,4 +30,3 @@
     "must_not_include": ["punish"]
   }
 ]
-

@@ -22,6 +22,8 @@ class AnalyticsHistoryPoint(BaseModel):
     workouts_missed: int
     calories: int
     protein_g: float
+    calorie_target: int
+    protein_target_g: float
     sleep_hours: float | None
     readiness_score: int | None
 

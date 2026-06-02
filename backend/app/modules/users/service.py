@@ -23,8 +23,11 @@ class UserService:
             fitness_level=payload.fitness_level,
             preferred_training_days=payload.preferred_training_days,
             preferred_unit=payload.preferred_unit,
+            weight_kg=payload.weight_kg,
+            height_cm=payload.height_cm,
+            age=payload.age,
+            biological_sex=payload.biological_sex,
         )
         self.db.commit()
         self.db.refresh(profile)
         return UserProfileResponse.model_validate(profile)
-

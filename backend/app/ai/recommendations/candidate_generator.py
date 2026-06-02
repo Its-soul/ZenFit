@@ -89,7 +89,8 @@ class RecommendationCandidateGenerator:
 
         if event_type == "meal.logged":
             nutrition = context.get("dashboard", {}).get("nutrition", {})
-            if nutrition.get("protein_g", 0) < nutrition.get("protein_target_g", 150) * 0.5:
+            protein_target = nutrition.get("protein_target_g") or 0
+            if protein_target > 0 and nutrition.get("protein_g", 0) < protein_target * 0.5:
                 return [
                     {
                         "title": "Add a protein anchor",

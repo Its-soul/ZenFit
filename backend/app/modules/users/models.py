@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,10 @@ class UserProfile(Base):
     fitness_level: Mapped[str | None] = mapped_column(String(40), nullable=True)
     preferred_training_days: Mapped[int] = mapped_column(Integer, default=4, nullable=False)
     preferred_unit: Mapped[str] = mapped_column(String(20), default="metric", nullable=False)
+    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    height_cm: Mapped[float | None] = mapped_column(Float, nullable=True)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    biological_sex: Mapped[str | None] = mapped_column(String(20), nullable=True)
     onboarding_complete: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

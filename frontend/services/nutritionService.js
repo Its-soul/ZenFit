@@ -10,10 +10,15 @@ export async function createMeal(payload) {
   return response.data;
 }
 
+export async function lookupMeal(query) {
+  const response = await apiClient.post("/nutrition/meals/lookup", { query });
+  return response.data;
+}
+
 export async function analyzeMealImage(file, onProgress) {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await apiClient.post("/nutrition/meal-image/analyze", formData, {
+  const response = await apiClient.post("/nutrition/meals/analyze-image", formData, {
     headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress: (event) => {
       if (onProgress && event.total) {

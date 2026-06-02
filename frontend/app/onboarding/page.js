@@ -15,7 +15,11 @@ export default function OnboardingPage() {
     primary_goal: "Build strength",
     fitness_level: "Beginner",
     preferred_training_days: 4,
-    preferred_unit: "metric"
+    preferred_unit: "metric",
+    weight_kg: 70,
+    height_cm: 170,
+    age: 30,
+    biological_sex: "prefer_not_to_say"
   });
   const [struggle, setStruggle] = useState("I miss one day and spiral");
   const [saving, setSaving] = useState(false);
@@ -127,6 +131,56 @@ export default function OnboardingPage() {
                 >
                   <option value="metric">Metric</option>
                   <option value="imperial">Imperial</option>
+                </select>
+              </label>
+
+              <label>
+                <span className="mb-2 block text-sm text-slate-200">Weight (kg)</span>
+                <input
+                  className="w-full rounded-lg border border-white/10 bg-[#0b0f17] px-3 py-2.5 text-sm"
+                  type="number"
+                  min="30"
+                  max="300"
+                  value={form.weight_kg}
+                  onChange={(event) => setForm({ ...form, weight_kg: Number(event.target.value) })}
+                />
+              </label>
+
+              <label>
+                <span className="mb-2 block text-sm text-slate-200">Height (cm)</span>
+                <input
+                  className="w-full rounded-lg border border-white/10 bg-[#0b0f17] px-3 py-2.5 text-sm"
+                  type="number"
+                  min="100"
+                  max="250"
+                  value={form.height_cm}
+                  onChange={(event) => setForm({ ...form, height_cm: Number(event.target.value) })}
+                />
+              </label>
+
+              <label>
+                <span className="mb-2 block text-sm text-slate-200">Age</span>
+                <input
+                  className="w-full rounded-lg border border-white/10 bg-[#0b0f17] px-3 py-2.5 text-sm"
+                  type="number"
+                  min="13"
+                  max="100"
+                  value={form.age}
+                  onChange={(event) => setForm({ ...form, age: Number(event.target.value) })}
+                />
+              </label>
+
+              <label>
+                <span className="mb-2 block text-sm text-slate-200">Biological sex</span>
+                <select
+                  className="w-full rounded-lg border border-white/10 bg-[#0b0f17] px-3 py-2.5 text-sm"
+                  value={form.biological_sex}
+                  onChange={(event) => setForm({ ...form, biological_sex: event.target.value })}
+                >
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="other">Other</option>
                 </select>
               </label>
             </div>

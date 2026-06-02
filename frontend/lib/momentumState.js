@@ -151,7 +151,8 @@ function calculateWeeklyWins(points) {
   return points.slice(-7).reduce((total, point) => {
     const workoutWin = point.workouts_completed > 0 ? 1 : 0;
     const sleepWin = point.sleep_hours >= 7 ? 1 : 0;
-    const nutritionWin = point.protein_g >= 80 ? 1 : 0;
+    const proteinTarget = point.protein_target_g || 0;
+    const nutritionWin = proteinTarget > 0 && point.protein_g >= proteinTarget * 0.5 ? 1 : 0;
     return total + workoutWin + sleepWin + nutritionWin;
   }, 0);
 }

@@ -27,6 +27,10 @@ class UserProfileRepository:
         fitness_level: str,
         preferred_training_days: int,
         preferred_unit: str,
+        weight_kg: float | None,
+        height_cm: float | None,
+        age: int | None,
+        biological_sex: str | None,
     ) -> UserProfile:
         profile = self.get_by_user_id(user_id)
         if profile is None:
@@ -36,7 +40,10 @@ class UserProfileRepository:
         profile.fitness_level = fitness_level
         profile.preferred_training_days = preferred_training_days
         profile.preferred_unit = preferred_unit
+        profile.weight_kg = weight_kg
+        profile.height_cm = height_cm
+        profile.age = age
+        profile.biological_sex = biological_sex
         profile.onboarding_complete = True
         self.db.flush()
         return profile
-

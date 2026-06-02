@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
 
     local_upload_dir: str = "uploads"
+    usda_api_key: str | None = None
+    gemini_api_key: str | None = None
+    gemini_vision_model: str = "gemini-1.5-flash"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

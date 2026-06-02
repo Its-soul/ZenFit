@@ -38,12 +38,45 @@ class NutritionTodayResponse(BaseModel):
     fat_g: float
     calorie_target: int
     protein_target_g: float
+    targets_are_estimated: bool = False
     meals: list[MealResponse]
 
 
+class DetectedFoodItem(BaseModel):
+    name: str
+    grams: float
+    calories: int = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+    analysis_method: str | None = None
+
+
 class MealImageAnalysisResponse(BaseModel):
-    upload_url: str
-    image_path: str
-    estimate: MealCreate
+    detected_items: list[DetectedFoodItem]
+    total_calories: int
+    protein_g: float
+    carbs_g: float
+    fat_g: float
     confidence: float
+    analysis_method: str
     explanation: str
+    estimate: MealCreate
+    upload_url: str | None = None
+    image_path: str | None = None
+
+
+class MealLookupRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=500)
+
+
+class MealLookupResponse(BaseModel):
+    detected_items: list[DetectedFoodItem]
+    total_calories: int
+    protein_g: float
+    carbs_g: float
+    fat_g: float
+    confidence: float
+    analysis_method: str
+    explanation: str
+    estimate: MealCreate

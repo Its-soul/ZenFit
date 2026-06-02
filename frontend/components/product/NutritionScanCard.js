@@ -92,7 +92,30 @@ export function NutritionScanCard({ previewUrl, progress, analysis, form, onFile
                   suffix="g"
                   onChange={(event) => onFormChange({ ...form, protein_g: Number(event.target.value) })}
                 />
+                <EstimateInput
+                  label="Carbs (g)"
+                  type="number"
+                  value={form.carbs_g}
+                  suffix="g"
+                  onChange={(event) => onFormChange({ ...form, carbs_g: Number(event.target.value) })}
+                />
+                <EstimateInput
+                  label="Fat (g)"
+                  type="number"
+                  value={form.fat_g}
+                  suffix="g"
+                  onChange={(event) => onFormChange({ ...form, fat_g: Number(event.target.value) })}
+                />
               </div>
+              {analysis.detected_items?.length ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {analysis.detected_items.map((item) => (
+                    <span key={`${item.name}-${item.grams}`} className="rounded-full bg-[#121711]/10 px-3 py-1 text-xs font-semibold text-[#263525]">
+                      {item.name} / {item.grams}g
+                    </span>
+                  ))}
+                </div>
+              ) : null}
               <p className="mt-4 text-sm leading-6 text-slate-800">{analysis.explanation}</p>
               <Button className="mt-5 bg-[#121711] text-white hover:bg-[#1f291d]" onClick={onSave}>
                 <Utensils className="h-4 w-4" />

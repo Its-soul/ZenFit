@@ -55,9 +55,9 @@ class CoachAgent(BaseAgent):
 
     def _nutrition_answer(self, nutrition: dict, memory_hint: str) -> str:
         calories = nutrition.get("calories", 0)
-        target = nutrition.get("calorie_target", 2200)
+        target = nutrition.get("calorie_target", 0)
         protein = nutrition.get("protein_g", 0)
-        protein_target = nutrition.get("protein_target_g", 150)
+        protein_target = nutrition.get("protein_target_g", 0)
         protein_gap = max(0, round(protein_target - protein))
         calorie_gap = max(0, target - calories)
         return (
@@ -79,7 +79,7 @@ class CoachAgent(BaseAgent):
         next_action = "complete the scheduled workout"
         if readiness is not None and readiness < 55:
             next_action = "log recovery and choose a lower-intensity session"
-        elif nutrition.get("protein_g", 0) < 80:
+        elif self._protein_is_behind(nutrition):
             next_action = "add one protein-forward meal"
         return (
             f"Today I see readiness at {readiness or 'unknown'}, workout status as {workout.get('status', 'scheduled')}, "
@@ -105,11 +105,18 @@ class CoachAgent(BaseAgent):
         recommendations = []
         if workout.get("status") == "missed":
             recommendations.append({"title": "Recover the missed workout", "body": "Move the session to tomorrow or reduce volume by 30% today."})
-        if nutrition.get("protein_g", 0) < 80:
+        if self._protein_is_behind(nutrition):
             recommendations.append({"title": "Raise protein signal", "body": "Add a high-protein meal so nutrition guidance becomes more accurate."})
         if readiness is not None and readiness < 55:
             recommendations.append({"title": "Lower intensity", "body": "Use a recovery-biased training day to protect consistency."})
         return recommendations
+
+    @staticmethod
+    def _protein_is_behind(nutrition: dict) -> bool:
+        target = nutrition.get("protein_target_g") or 0
+        if target <= 0:
+            return False
+        return nutrition.get("protein_g", 0) < target * 0.55
 
     def _memory_hint(self, memories: list[dict], context: dict) -> str:
         if memories:

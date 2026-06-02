@@ -8,6 +8,7 @@ from app.ai.analytics.behavior_patterns import BehavioralPatternAnalyzer
 from app.ai.analytics.personalization import PersonalizationEngine
 from app.ai.analytics.predictors import PredictiveAnalyticsEngine
 from app.ai.analytics.trend_detector import TrendDetector
+from app.ai.nutrition.targets import NutritionTargetCalculator
 from app.ai.observability import observe_ai_operation
 from app.ai.reporting import WeeklyReportService
 from app.modules.analytics.schemas import AnalyticsHistoryResponse, PredictiveAnalyticsResponse, WeeklyReportResponse
@@ -75,6 +76,15 @@ class AnalyticsService:
         recovery_logs = list(
             self.db.scalars(select(RecoveryCheckin).where(RecoveryCheckin.user_id == user.id, RecoveryCheckin.checkin_date >= start_day))
         )
+        profile = getattr(user, "profile", None)
+        targets = NutritionTargetCalculator().calculate(
+            weight_kg=getattr(profile, "weight_kg", None),
+            height_cm=getattr(profile, "height_cm", None),
+            age=getattr(profile, "age", None),
+            biological_sex=getattr(profile, "biological_sex", None),
+            training_frequency=getattr(profile, "preferred_training_days", None),
+            goal=getattr(profile, "primary_goal", None),
+        )
 
         workouts_by_day = {}
         for workout in workouts:
@@ -109,6 +119,8 @@ class AnalyticsService:
                     "workouts_missed": workout_stats["missed"],
                     "calories": meal_stats["calories"],
                     "protein_g": round(meal_stats["protein_g"], 1),
+                    "calorie_target": targets["calorie_target"],
+                    "protein_target_g": targets["protein_target_g"],
                     "sleep_hours": sleep.duration_hours if sleep else None,
                     "readiness_score": recovery.readiness_score if recovery else None,
                 }
