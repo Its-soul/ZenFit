@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { login } from "@/services/authService";
 
 export default function LoginPage() {
@@ -23,7 +24,7 @@ export default function LoginPage() {
       const session = await login(form);
       router.replace(session.user.onboarding_complete ? "/dashboard" : "/onboarding");
     } catch (requestError) {
-      setError(requestError.response?.data?.detail || "Unable to log in");
+      setError(getApiErrorMessage(requestError, "Unable to log in. Check your email and password."));
     } finally {
       setLoading(false);
     }
@@ -52,6 +53,12 @@ export default function LoginPage() {
             <span className="mb-2 block text-sm text-slate-200">Password</span>
             <Input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} required />
           </label>
+
+          <div className="text-right">
+            <Link className="text-sm font-medium text-zenSage" href="/auth/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
 
           {error ? <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">{error}</p> : null}
 

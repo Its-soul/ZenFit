@@ -3,6 +3,8 @@
 ## Start
 
 ```bash
+cp .env.example .env
+# Fill POSTGRES_PASSWORD, DATABASE_URL, JWT_SECRET_KEY, USDA_API_KEY, and GEMINI_API_KEY.
 docker compose up --build
 ```
 
@@ -32,7 +34,7 @@ Useful URLs:
 
 Next.js runs on port `3000`.
 
-The frontend stores the JWT in `localStorage` for local development simplicity. In production, switch to secure HTTP-only cookies.
+The frontend stores short-lived access and refresh tokens in `localStorage` for local development simplicity. In production, prefer secure HTTP-only cookies and keep `JWT_SECRET_KEY` unique per environment.
 
 ## AI Worker
 

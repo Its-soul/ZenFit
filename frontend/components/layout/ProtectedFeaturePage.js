@@ -11,6 +11,10 @@ export function ProtectedFeaturePage({ title, description, children }) {
     return <main className="flex min-h-screen items-center justify-center text-muted">Loading...</main>;
   }
 
+  if (!user) {
+    return <main className="flex min-h-screen items-center justify-center text-muted">Redirecting...</main>;
+  }
+
   return (
     <AppShell user={user} onLogout={logout}>
       <GlassPanel className="p-6">
@@ -21,4 +25,3 @@ export function ProtectedFeaturePage({ title, description, children }) {
     </AppShell>
   );
 }
-

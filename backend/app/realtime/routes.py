@@ -21,7 +21,9 @@ def _get_user_id_from_token(token: str) -> str | None:
     db: Session = SessionLocal()
     try:
         user = UserRepository(db).get_by_id(user_id)
-        return str(user.id) if user else None
+        if user is None or not user.is_active or payload.get("ver") != user.token_version:
+            return None
+        return str(user.id)
     finally:
         db.close()
 
@@ -42,4 +44,3 @@ async def dashboard_socket(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         websocket_manager.disconnect(user_id, websocket)
-

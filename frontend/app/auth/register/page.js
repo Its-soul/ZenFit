@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { register } from "@/services/authService";
 
 export default function RegisterPage() {
@@ -23,7 +24,7 @@ export default function RegisterPage() {
       await register(form);
       router.replace("/onboarding");
     } catch (requestError) {
-      setError(requestError.response?.data?.detail || "Unable to create account");
+      setError(getApiErrorMessage(requestError, "Unable to create account. Check the form and try again."));
     } finally {
       setLoading(false);
     }

@@ -51,13 +51,15 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    if (!loading) loadToday();
-  }, [loading]);
+    if (!loading && user) queueMicrotask(loadToday);
+  }, [loading, user]);
 
   useEffect(() => {
     if (realtime.lastMessage?.type === "ai.event.processed") {
-      setNotice("Your plan adjusted around your latest activity.");
-      loadToday();
+      queueMicrotask(() => {
+        setNotice("Your plan adjusted around your latest activity.");
+        loadToday();
+      });
     }
   }, [realtime.lastMessage]);
 

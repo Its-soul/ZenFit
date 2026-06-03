@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import apiClient, { refreshAuthSession } from "./apiClient";
 import { getAccessToken } from "@/lib/authStorage";
 
 export async function sendCoachMessage(message) {
@@ -8,7 +8,7 @@ export async function sendCoachMessage(message) {
 
 export async function streamCoachMessage(message, { onToken, onMetadata } = {}) {
   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-  const response = await fetch(`${baseURL}/ai-coach/messages/stream`, {
+  const makeRequest = () => fetch(`${baseURL}/ai-coach/messages/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -16,6 +16,12 @@ export async function streamCoachMessage(message, { onToken, onMetadata } = {}) 
     },
     body: JSON.stringify({ message })
   });
+
+  let response = await makeRequest();
+  if (response.status === 401) {
+    await refreshAuthSession();
+    response = await makeRequest();
+  }
 
   if (!response.ok || !response.body) {
     throw new Error("Unable to stream coach response");

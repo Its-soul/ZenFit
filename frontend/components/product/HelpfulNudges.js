@@ -34,7 +34,7 @@ export function HelpfulNudges({ items, onFeedback }) {
             {item.reasoning_summary ? <p className="mt-3 text-xs leading-5 text-slate-400">{item.reasoning_summary}</p> : null}
             <div className="mt-4 flex gap-2">
               <Button variant="secondary" className="px-3 py-1.5 text-xs" onClick={() => onFeedback(item.id, "accepted")}>
-                I'll do this
+                I&apos;ll do this
               </Button>
               <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => onFeedback(item.id, "dismissed")}>
                 Not today

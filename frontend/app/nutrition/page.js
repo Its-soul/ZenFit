@@ -37,7 +37,7 @@ export default function NutritionPage() {
   }
 
   useEffect(() => {
-    loadNutrition();
+    queueMicrotask(loadNutrition);
   }, []);
 
   async function saveMeal(payload = form) {

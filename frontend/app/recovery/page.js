@@ -54,7 +54,7 @@ export default function RecoveryPage() {
   }
 
   useEffect(() => {
-    loadReadiness();
+    queueMicrotask(loadReadiness);
   }, []);
 
   async function saveMood(mood) {

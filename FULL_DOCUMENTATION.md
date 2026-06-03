@@ -481,13 +481,15 @@ Payload shape from `backend/app/ai/memory/vector_store.py`:
 | `DATABASE_URL` | `backend/app/config.py`, `backend/app/db/session.py`, `docker-compose.yml` | SQLAlchemy PostgreSQL URL. | `postgresql+psycopg://...` |
 | `REDIS_URL` | `backend/app/config.py`, `backend/app/core/redis_client.py`, realtime listener | Redis URL. | `redis://localhost:6379/0` |
 | `QDRANT_URL` | `backend/app/config.py`, `backend/app/core/qdrant_client.py` | Qdrant URL. | `http://localhost:6333` |
-| `JWT_SECRET_KEY` | `backend/app/config.py`, `backend/app/core/security.py` | JWT signing secret. | `change-this-in-production` |
+| `JWT_SECRET_KEY` | `backend/app/config.py`, `backend/app/core/security.py` | JWT signing secret. | Required unique secret. |
 | `JWT_ALGORITHM` | `backend/app/config.py`, `backend/app/core/security.py` | JWT algorithm. | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py`, `backend/app/core/security.py` | JWT expiry. | `1440` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py`, `backend/app/core/security.py` | Access JWT expiry. | `15` |
+| `REFRESH_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py`, `backend/app/core/security.py` | Refresh JWT expiry. | `10080` |
+| `PASSWORD_RESET_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py`, `backend/app/core/security.py` | Password reset JWT expiry. | `30` |
 | `LOCAL_UPLOAD_DIR` | `backend/app/config.py` | Future local upload path. | `uploads` |
 | `POSTGRES_DB` | `docker-compose.yml`, `.env.example` | Docker Postgres DB name. | `fitness_os` |
 | `POSTGRES_USER` | `docker-compose.yml`, `.env.example` | Docker Postgres user. | `fitness_user` |
-| `POSTGRES_PASSWORD` | `docker-compose.yml`, `.env.example` | Docker Postgres password. | `fitness_password` |
+| `POSTGRES_PASSWORD` | `docker-compose.yml`, `.env.example` | Docker Postgres password. | Required local secret. |
 | `NEXT_PUBLIC_API_URL` | `frontend/services/apiClient.js`, `docker-compose.yml` | Browser API base URL. | `http://localhost:8000/api/v1` |
 | `NEXT_PUBLIC_WS_URL` | `frontend/hooks/useWebSocket.js`, `docker-compose.yml` | Browser WebSocket base URL. | `ws://localhost:8000/ws` |
 
@@ -495,7 +497,6 @@ Env files:
 
 - Root: `.env.example`
 - Backend: `backend/.env.example`
-- Frontend: `frontend/.env.example`
 
 ## 8. State Management
 
@@ -505,7 +506,8 @@ State patterns:
 
 | State Type | Location | Mechanism |
 |---|---|---|
-| Auth token | `frontend/lib/authStorage.js` | `localStorage` key `fitness_os_token`. |
+| Access token | `frontend/lib/authStorage.js` | `localStorage` key `fitness_os_token`. |
+| Refresh token | `frontend/lib/authStorage.js` | `localStorage` key `fitness_os_refresh_token`. |
 | Stored user | `frontend/lib/authStorage.js` | `localStorage` key `fitness_os_user`. |
 | Auth runtime state | `frontend/hooks/useAuth.js` | React `useState`, refreshed via `/auth/me`. |
 | API cache | None | No React Query/SWR/cache layer. Data fetched per page. |
@@ -524,13 +526,12 @@ Findings:
 | Risk | Location | Notes |
 |---|---|---|
 | JWT stored in `localStorage` | `frontend/lib/authStorage.js` | Simple for local dev, vulnerable to XSS token theft. Prefer HTTP-only secure cookies in production. |
-| Default JWT secret | `.env.example`, `backend/.env.example`, `backend/app/config.py` | `change-this-in-production` must be changed before deployment. |
-| Demo DB password | `.env.example`, `docker-compose.yml` | `fitness_password` is local-only and must not be used in production. |
+| Required JWT secret | `.env.example`, `backend/.env.example`, `backend/app/config.py` | The app rejects empty, placeholder, or weak JWT secrets. |
+| Database password | `.env.example`, `docker-compose.yml` | Must be provided in untracked `.env`. |
 | Demo user password | `backend/app/demo/profiles.py` | All demo accounts use `DemoPass123!`; public test credential. |
 | WebSocket token in query string | `backend/app/realtime/routes.py`, `frontend/hooks/useWebSocket.js` | Query tokens can appear in logs. Prefer short-lived tokens or cookie auth for production. |
-| Long token lifetime | `.env.example`, `backend/app/config.py` | `ACCESS_TOKEN_EXPIRE_MINUTES=1440` is convenient but long. |
+| Browser refresh token | `frontend/lib/authStorage.js` | Refresh tokens are revoked by `users.token_version`; prefer HTTP-only secure cookies in production. |
 | CORS allows local frontend | `backend/app/main.py` | Safe for local, configure precise production origins. |
-| No refresh-token rotation | Auth module | Only access tokens exist. |
 | No CSRF protection | Auth is bearer-token based | If moved to cookies, add CSRF strategy. |
 
 Positive controls:

@@ -13,6 +13,8 @@ Requirements:
 Start everything:
 
 ```bash
+cp .env.example .env
+# Fill every placeholder before starting the stack.
 docker compose up --build
 ```
 

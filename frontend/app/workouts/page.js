@@ -23,7 +23,7 @@ export default function WorkoutsPage() {
   }
 
   useEffect(() => {
-    loadSessions();
+    queueMicrotask(loadSessions);
   }, []);
 
   async function handleSubmit(event) {

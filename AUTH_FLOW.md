@@ -16,7 +16,7 @@ No Firebase Auth, Supabase Auth, Auth.js/NextAuth, OAuth, SAML, Magic Link, Redu
 
 | File | Responsibility |
 |---|---|
-| `backend/app/modules/auth/routes.py` | Register, login, current-user endpoints. |
+| `backend/app/modules/auth/routes.py` | Register, login, refresh, logout, password reset, current-user endpoints. |
 | `backend/app/modules/auth/service.py` | Auth business logic, password verification, token response. |
 | `backend/app/modules/auth/repository.py` | User database queries. |
 | `backend/app/modules/auth/models.py` | `User` SQLAlchemy model. |
@@ -49,7 +49,7 @@ POST /api/v1/auth/register
   -> hash_password
   -> UserRepository.create
   -> UserProfileRepository.create_for_user
-  -> create_access_token
+  -> create access and refresh tokens
   -> TokenResponse
 ```
 
@@ -60,7 +60,7 @@ POST /api/v1/auth/login
   -> AuthService.login
   -> UserRepository.get_by_email
   -> verify_password
-  -> create_access_token
+  -> create access and refresh tokens
   -> TokenResponse
 ```
 
@@ -76,16 +76,9 @@ GET /api/v1/auth/me
 
 ## JWT Details
 
-JWT creation is in `backend/app/core/security.py`:
+JWT creation is in `backend/app/core/security.py`.
 
-```python
-def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
-    payload: dict[str, Any] = {"sub": subject, "exp": expires_at}
-    if extra_claims:
-        payload.update(extra_claims)
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-```
+The backend issues purpose-specific JWTs for access, refresh, and password reset operations. Protected API routes only accept `type=access`; `/auth/refresh` only accepts `type=refresh`; password reset confirmation only accepts `type=password_reset`.
 
 JWT claims:
 
@@ -93,15 +86,21 @@ JWT claims:
 |---|---|
 | `sub` | User UUID string. |
 | `exp` | Expiration timestamp. |
+| `iat` | Issued-at timestamp. |
+| `type` | Token purpose: `access`, `refresh`, or `password_reset`. |
 | `email` | Extra claim added during token creation. |
+| `role` | User role, currently defaulting to `user`. |
+| `ver` | User token version used to revoke old tokens. |
 
 JWT settings:
 
 | Setting | File | Default |
 |---|---|---|
-| `JWT_SECRET_KEY` | `backend/app/config.py` | `change-this-in-production` |
+| `JWT_SECRET_KEY` | `backend/app/config.py` | Required environment secret. |
 | `JWT_ALGORITHM` | `backend/app/config.py` | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py` | `1440` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py` | `15` |
+| `REFRESH_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py` | `10080` |
+| `PASSWORD_RESET_TOKEN_EXPIRE_MINUTES` | `backend/app/config.py` | `30` |
 
 ## Password Handling
 
@@ -133,6 +132,7 @@ Storage locations:
 | Data | Browser Storage | Key | Set In | Cleared In |
 |---|---|---|---|---|
 | JWT access token | `localStorage` | `fitness_os_token` | `saveAuthSession` | `clearAuthSession` |
+| JWT refresh token | `localStorage` | `fitness_os_refresh_token` | `saveAuthSession` | `clearAuthSession` |
 | User JSON | `localStorage` | `fitness_os_user` | `saveAuthSession` | `clearAuthSession` |
 
 No `sessionStorage` keys exist.
@@ -246,16 +246,15 @@ The token is decoded with `decode_access_token`, then the user is loaded from Po
 | JWT token in browser | `localStorage.fitness_os_token`. |
 | Stored user in browser | `localStorage.fitness_os_user`. |
 | Session cookie | None. |
-| Refresh token | None. |
+| Refresh token | `localStorage.fitness_os_refresh_token`. |
 | Redux/Zustand/context auth state | None. |
 | React runtime auth state | `frontend/hooks/useAuth.js`. |
 
 ## Security Notes
 
 - `localStorage` JWT storage is simple but XSS-sensitive.
-- `JWT_SECRET_KEY=change-this-in-production` is unsafe outside local development.
-- `ACCESS_TOKEN_EXPIRE_MINUTES=1440` is long-lived.
+- `JWT_SECRET_KEY` is required and must be unique per environment.
+- Access tokens are short-lived and refresh tokens are revoked by `users.token_version`.
 - WebSocket token in query string may appear in logs.
 - There is no server-side Next.js middleware protection.
-- There is no refresh token or revocation system.
-
+- Logout and password reset increment `users.token_version`, invalidating existing access and refresh tokens.

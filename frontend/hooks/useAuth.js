@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getMe, logout as logoutService } from "@/services/authService";
-import { getStoredUser } from "@/lib/authStorage";
+import { clearAuthSession, getAccessToken, getStoredUser } from "@/lib/authStorage";
 
 export function useAuth({ requireAuth = false } = {}) {
   const router = useRouter();
@@ -15,13 +15,25 @@ export function useAuth({ requireAuth = false } = {}) {
     let mounted = true;
 
     async function loadUser() {
+      const token = getAccessToken();
+      if (!token) {
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
+        if (requireAuth) router.replace("/auth/login");
+        return;
+      }
+
       try {
         const freshUser = await getMe();
         if (!mounted) return;
         setUser(freshUser);
       } catch (error) {
+        clearAuthSession();
+        if (!mounted) return;
+        setUser(null);
         if (requireAuth) {
-          logoutService();
           router.replace("/auth/login");
         }
       } finally {
@@ -36,12 +48,11 @@ export function useAuth({ requireAuth = false } = {}) {
     };
   }, [requireAuth, router]);
 
-  function logout() {
-    logoutService();
+  async function logout() {
+    await logoutService();
     setUser(null);
     router.replace("/auth/login");
   }
 
   return { user, setUser, loading, logout };
 }
-

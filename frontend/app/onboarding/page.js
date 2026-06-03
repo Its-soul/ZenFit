@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
+import { getApiErrorMessage } from "@/services/apiClient";
 import { completeOnboarding } from "@/services/userService";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { loading } = useAuth({ requireAuth: true });
+  const { user, loading } = useAuth({ requireAuth: true });
   const [form, setForm] = useState({
     primary_goal: "Build strength",
     fitness_level: "Beginner",
@@ -23,16 +24,28 @@ export default function OnboardingPage() {
   });
   const [struggle, setStruggle] = useState("I miss one day and spiral");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setError("");
     setSaving(true);
-    await completeOnboarding(form);
-    router.replace("/dashboard");
+    try {
+      await completeOnboarding(form);
+      router.replace("/dashboard");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "We could not save onboarding. Try again."));
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading) {
     return <main className="flex min-h-screen items-center justify-center text-muted">Preparing ZenFit...</main>;
+  }
+
+  if (!user) {
+    return <main className="flex min-h-screen items-center justify-center text-muted">Redirecting...</main>;
   }
 
   return (
@@ -46,7 +59,7 @@ export default function OnboardingPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-zenSage">Welcome to ZenFit</p>
-                <h1 className="text-3xl font-semibold tracking-[-0.02em]">Let's protect your momentum.</h1>
+                <h1 className="text-3xl font-semibold tracking-[-0.02em]">Let&apos;s protect your momentum.</h1>
               </div>
             </div>
             <p className="mb-6 max-w-xl text-sm leading-6 text-muted">
@@ -189,6 +202,7 @@ export default function OnboardingPage() {
               {saving ? "Creating your plan..." : "Show my Today plan"}
               <ArrowRight className="h-4 w-4" />
             </Button>
+            {error ? <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">{error}</p> : null}
           </div>
 
           <aside className="rounded-[1.5rem] bg-zenCream p-5 text-[#121711]">

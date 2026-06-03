@@ -22,7 +22,7 @@ export function AdaptiveWorkoutCard({ workout, momentum, onComplete, onSkip, onM
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-zenSage">
             <Dumbbell className="h-4 w-4" />
-            Today's workout
+            Today&apos;s workout
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.02em]">{workout?.title || "Full Body Foundation"}</h2>
           <p className="mt-2 text-sm text-muted">

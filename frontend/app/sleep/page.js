@@ -66,7 +66,7 @@ export default function SleepPage() {
   }
 
   useEffect(() => {
-    loadLogs();
+    queueMicrotask(loadLogs);
   }, []);
 
   async function handleSubmit(event) {

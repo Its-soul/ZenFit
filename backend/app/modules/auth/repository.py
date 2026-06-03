@@ -24,3 +24,14 @@ class UserRepository:
         self.db.add(user)
         self.db.flush()
         return user
+
+    def save_password(self, user: User, *, hashed_password: str) -> User:
+        user.hashed_password = hashed_password
+        user.token_version += 1
+        self.db.flush()
+        return user
+
+    def revoke_tokens(self, user: User) -> User:
+        user.token_version += 1
+        self.db.flush()
+        return user
