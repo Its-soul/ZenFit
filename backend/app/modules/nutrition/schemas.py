@@ -49,6 +49,7 @@ class DetectedFoodItem(BaseModel):
     protein_g: float = 0
     carbs_g: float = 0
     fat_g: float = 0
+    confidence: float | None = None
     analysis_method: str | None = None
 
 
@@ -61,6 +62,8 @@ class MealImageAnalysisResponse(BaseModel):
     confidence: float
     analysis_method: str
     explanation: str
+    needs_user_confirmation: bool = False
+    warnings: list[str] = Field(default_factory=list)
     estimate: MealCreate
     upload_url: str | None = None
     image_path: str | None = None
@@ -79,4 +82,6 @@ class MealLookupResponse(BaseModel):
     confidence: float
     analysis_method: str
     explanation: str
+    needs_user_confirmation: bool = False
+    warnings: list[str] = Field(default_factory=list)
     estimate: MealCreate

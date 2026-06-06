@@ -5,6 +5,7 @@ import uuid
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from app.ai.nutrition.food_lookup import FoodLookupService
 from app.ai.nutrition.meal_parser import MealTextParser
@@ -28,6 +29,16 @@ class FakeUploadFile:
 class FakeVision:
     async def detect_food_items(self, image_bytes: bytes, content_type: str) -> list[dict]:
         return [{"name": "chicken breast", "grams": 100}, {"name": "rice", "grams": 150}]
+
+
+class FakeStructuredVision:
+    def __init__(self, analysis: dict):
+        self.analysis = analysis
+
+    async def analyze_meal(self, image_bytes: bytes, content_type: str) -> dict:
+        assert image_bytes == b"image-bytes"
+        assert content_type == "image/jpeg"
+        return self.analysis
 
 
 class FakeFoodLookup:
@@ -110,7 +121,8 @@ def test_target_calculator_marks_missing_data_estimated():
 def test_food_lookup_fallback_returns_labeled_usda_based_values():
     result = asyncio.run(FoodLookupService(api_key=None).search("2 eggs"))
 
-    assert result is None
+    assert result["name"] == "whole egg"
+    assert result["analysis_method"] == "fallback"
 
     result = asyncio.run(FoodLookupService(api_key=None).search("eggs"))
 
@@ -125,17 +137,39 @@ def test_gemini_response_validation_accepts_structured_json():
             {
                 "content": {
                     "parts": [
-                        {"text": '{"items":[{"name":"Chicken Breast","grams":150},{"name":"White Rice","grams":180}]}'}
+                        {
+                            "text": (
+                                '{"meal_name":"chicken rice plate","foods":['
+                                '{"name":"Chicken Breast","grams":150,"calories":248,"protein_g":46.5,"carbs_g":0,"fat_g":5.4},'
+                                '{"name":"White Rice","grams":180,"calories":234,"protein_g":4.8,"carbs_g":50.7,"fat_g":0.5}'
+                                '],"calories":482,"protein_g":51.3,"carbs_g":50.7,"fat_g":5.9,'
+                                '"confidence":0.86,"needs_user_confirmation":false}'
+                            )
+                        }
                     ]
                 }
             }
         ]
     }
 
-    assert GeminiMealVisionService.validate_response(response) == [
-        {"name": "chicken breast", "grams": 150.0},
-        {"name": "white rice", "grams": 180.0},
-    ]
+    analysis = GeminiMealVisionService.validate_response(response)
+
+    assert analysis["meal_name"] == "chicken rice plate"
+    assert analysis["confidence"] == 0.86
+    assert analysis["foods"][0]["name"] == "chicken breast"
+    assert analysis["foods"][0]["grams"] == 150.0
+    assert analysis["foods"][0]["calories"] == 248.0
+    assert analysis["foods"][1]["name"] == "white rice"
+    assert analysis["foods"][1]["grams"] == 180.0
+
+
+def test_gemini_response_validation_accepts_legacy_items_json():
+    response = {"items": [{"name": "Pizza", "grams": 180}]}
+
+    analysis = GeminiMealVisionService.validate_response(response)
+
+    assert analysis["meal_name"] == "pizza"
+    assert analysis["foods"] == [{"name": "pizza", "grams": 180.0}]
 
 
 def test_image_analysis_calculates_macros_without_filename_matching(tmp_path, monkeypatch):
@@ -153,6 +187,73 @@ def test_image_analysis_calculates_macros_without_filename_matching(tmp_path, mo
     assert result.confidence == 1
     assert result.analysis_method == "gemini_usda"
     assert "meal.jpg" not in result.estimate.name.lower()
+
+
+@pytest.mark.parametrize(
+    ("meal_name", "foods"),
+    [
+        ("pizza slice", [{"name": "pizza", "grams": 180}]),
+        ("burger meal", [{"name": "burger", "grams": 220}, {"name": "french fries", "grams": 90}]),
+        ("fruit bowl", [{"name": "mixed fruits", "grams": 250}]),
+        ("indian thali", [{"name": "rice", "grams": 160}, {"name": "dal", "grams": 140}, {"name": "chapati", "grams": 60}, {"name": "sabzi", "grams": 120}]),
+        ("chole bhature plate", [{"name": "chole bhature", "grams": 320}, {"name": "curd", "grams": 80}]),
+        ("dosa breakfast", [{"name": "masala dosa", "grams": 180}, {"name": "chutney", "grams": 40}]),
+        ("beverage", [{"name": "chai", "grams": 220}]),
+    ],
+)
+def test_image_analysis_common_meals_do_not_return_zero(tmp_path, monkeypatch, meal_name, foods):
+    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
+    service = NutritionService(db=None)
+    service.food_lookup = FoodLookupService(api_key=None)
+    service.vision = FakeStructuredVision(
+        {
+            "meal_name": meal_name,
+            "foods": foods,
+            "confidence": 0.72,
+            "needs_user_confirmation": True,
+            "warnings": ["Image portions are estimated."],
+        }
+    )
+
+    result = asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
+
+    assert result.total_calories > 0
+    assert result.carbs_g + result.protein_g + result.fat_g > 0
+    assert result.detected_items
+    assert result.estimate.name == meal_name.title()
+    assert result.needs_user_confirmation is True
+
+
+def test_image_analysis_uses_model_macros_when_food_database_misses(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
+    service = NutritionService(db=None)
+    service.food_lookup = FoodLookupService(api_key=None)
+    service.vision = FakeStructuredVision(
+        {
+            "meal_name": "regional mixed plate",
+            "foods": [
+                {
+                    "name": "unknown regional curry",
+                    "grams": 180,
+                    "calories": 260,
+                    "protein_g": 9,
+                    "carbs_g": 24,
+                    "fat_g": 14,
+                    "confidence": 0.48,
+                }
+            ],
+            "confidence": 0.48,
+            "needs_user_confirmation": True,
+            "warnings": ["Food match is uncertain."],
+        }
+    )
+
+    result = asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
+
+    assert result.total_calories == 260
+    assert result.protein_g == 9
+    assert result.detected_items[0].analysis_method == "vision_estimate"
+    assert result.needs_user_confirmation is True
 
 
 def test_today_targets_come_from_user_profile():

@@ -11,6 +11,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 USDA_SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search"
+USE_SETTINGS_API_KEY = object()
 NUTRIENT_IDS = {
     "calories_per_100g": {1008, 2047, 2048},
     "protein_per_100g": {1003},
@@ -55,6 +56,30 @@ FALLBACK_FOODS: dict[str, dict[str, float | str]] = {
     "strawberries": {"name": "strawberries", "calories_per_100g": 32, "protein_per_100g": 0.67, "carbs_per_100g": 7.68, "fat_per_100g": 0.3},
     "quinoa cooked": {"name": "quinoa cooked", "calories_per_100g": 120, "protein_per_100g": 4.4, "carbs_per_100g": 21.3, "fat_per_100g": 1.92},
     "beef cooked": {"name": "beef cooked", "calories_per_100g": 250, "protein_per_100g": 25.93, "carbs_per_100g": 0, "fat_per_100g": 15.41},
+    "pizza": {"name": "pizza", "calories_per_100g": 266, "protein_per_100g": 11.0, "carbs_per_100g": 33.0, "fat_per_100g": 10.0},
+    "burger": {"name": "burger", "calories_per_100g": 295, "protein_per_100g": 15.0, "carbs_per_100g": 24.0, "fat_per_100g": 14.0},
+    "french fries": {"name": "french fries", "calories_per_100g": 312, "protein_per_100g": 3.4, "carbs_per_100g": 41.0, "fat_per_100g": 15.0},
+    "mixed fruit": {"name": "mixed fruit", "calories_per_100g": 60, "protein_per_100g": 0.8, "carbs_per_100g": 15.0, "fat_per_100g": 0.2},
+    "orange juice": {"name": "orange juice", "calories_per_100g": 45, "protein_per_100g": 0.7, "carbs_per_100g": 10.4, "fat_per_100g": 0.2},
+    "coffee": {"name": "coffee", "calories_per_100g": 1, "protein_per_100g": 0.1, "carbs_per_100g": 0, "fat_per_100g": 0},
+    "tea": {"name": "tea", "calories_per_100g": 1, "protein_per_100g": 0, "carbs_per_100g": 0.2, "fat_per_100g": 0},
+    "milk tea": {"name": "milk tea", "calories_per_100g": 45, "protein_per_100g": 1.5, "carbs_per_100g": 6.0, "fat_per_100g": 1.5},
+    "roti": {"name": "roti", "calories_per_100g": 297, "protein_per_100g": 9.6, "carbs_per_100g": 46.0, "fat_per_100g": 7.5},
+    "chapati": {"name": "chapati", "calories_per_100g": 297, "protein_per_100g": 9.6, "carbs_per_100g": 46.0, "fat_per_100g": 7.5},
+    "dal": {"name": "dal", "calories_per_100g": 116, "protein_per_100g": 6.8, "carbs_per_100g": 16.0, "fat_per_100g": 2.5},
+    "paneer curry": {"name": "paneer curry", "calories_per_100g": 210, "protein_per_100g": 10.0, "carbs_per_100g": 8.0, "fat_per_100g": 15.0},
+    "chole": {"name": "chole", "calories_per_100g": 164, "protein_per_100g": 8.9, "carbs_per_100g": 27.0, "fat_per_100g": 2.6},
+    "bhature": {"name": "bhature", "calories_per_100g": 330, "protein_per_100g": 7.5, "carbs_per_100g": 47.0, "fat_per_100g": 13.0},
+    "chole bhature": {"name": "chole bhature", "calories_per_100g": 245, "protein_per_100g": 7.8, "carbs_per_100g": 35.0, "fat_per_100g": 8.0},
+    "dosa": {"name": "dosa", "calories_per_100g": 168, "protein_per_100g": 3.9, "carbs_per_100g": 28.0, "fat_per_100g": 4.2},
+    "idli": {"name": "idli", "calories_per_100g": 128, "protein_per_100g": 4.2, "carbs_per_100g": 25.0, "fat_per_100g": 0.7},
+    "poha": {"name": "poha", "calories_per_100g": 130, "protein_per_100g": 2.6, "carbs_per_100g": 23.0, "fat_per_100g": 3.0},
+    "biryani": {"name": "biryani", "calories_per_100g": 170, "protein_per_100g": 6.0, "carbs_per_100g": 24.0, "fat_per_100g": 5.5},
+    "curd": {"name": "curd", "calories_per_100g": 61, "protein_per_100g": 3.5, "carbs_per_100g": 4.7, "fat_per_100g": 3.3},
+    "sabzi": {"name": "sabzi", "calories_per_100g": 95, "protein_per_100g": 2.5, "carbs_per_100g": 12.0, "fat_per_100g": 4.5},
+    "vegetable curry": {"name": "vegetable curry", "calories_per_100g": 110, "protein_per_100g": 3.0, "carbs_per_100g": 14.0, "fat_per_100g": 5.0},
+    "chutney": {"name": "chutney", "calories_per_100g": 120, "protein_per_100g": 2.0, "carbs_per_100g": 18.0, "fat_per_100g": 4.5},
+    "salad": {"name": "salad", "calories_per_100g": 25, "protein_per_100g": 1.2, "carbs_per_100g": 4.0, "fat_per_100g": 0.3},
 }
 
 ALIASES = {
@@ -71,12 +96,40 @@ ALIASES = {
     "yogurt": "greek yogurt",
     "whey": "whey protein",
     "protein powder": "whey protein",
+    "fruit": "mixed fruit",
+    "fruits": "mixed fruit",
+    "mixed fruits": "mixed fruit",
+    "veg curry": "vegetable curry",
+    "vegetable sabzi": "sabzi",
+    "sabji": "sabzi",
+    "subzi": "sabzi",
+    "daal": "dal",
+    "lentil curry": "dal",
+    "lentil soup": "dal",
+    "paneer sabzi": "paneer curry",
+    "paneer masala": "paneer curry",
+    "palak paneer": "paneer curry",
+    "chickpea curry": "chole",
+    "chickpeas": "chole",
+    "yoghurt curd": "curd",
+    "raita": "curd",
+    "naan": "roti",
+    "phulka": "roti",
+    "paratha": "roti",
+    "masala dosa": "dosa",
+    "plain dosa": "dosa",
+    "steamed idli": "idli",
+    "veg biryani": "biryani",
+    "chicken biryani": "biryani",
+    "pulao": "biryani",
+    "pilaf": "biryani",
+    "chai": "milk tea",
 }
 
 
 class FoodLookupService:
-    def __init__(self, *, api_key: str | None = None, timeout_seconds: float = 8.0):
-        self.api_key = api_key if api_key is not None else settings.usda_api_key
+    def __init__(self, *, api_key: str | None | object = USE_SETTINGS_API_KEY, timeout_seconds: float = 8.0):
+        self.api_key = settings.usda_api_key if api_key is USE_SETTINGS_API_KEY else api_key
         self.timeout_seconds = timeout_seconds
 
     async def search(self, query: str) -> dict | None:
@@ -153,6 +206,14 @@ class FoodLookupService:
         key = ALIASES.get(query, query)
         if key in FALLBACK_FOODS:
             return dict(FALLBACK_FOODS[key])
+
+        for alias, mapped_key in ALIASES.items():
+            if alias in query and mapped_key in FALLBACK_FOODS:
+                return dict(FALLBACK_FOODS[mapped_key])
+
+        for fallback_key in FALLBACK_FOODS:
+            if fallback_key in query:
+                return dict(FALLBACK_FOODS[fallback_key])
 
         choices = list(FALLBACK_FOODS)
         matches = get_close_matches(key, choices, n=1, cutoff=0.82)
