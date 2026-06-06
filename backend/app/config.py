@@ -1,7 +1,11 @@
 from functools import lru_cache
+from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = BACKEND_ROOT.parent
 
 
 class Settings(BaseSettings):
@@ -14,7 +18,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     qdrant_url: str = "http://localhost:6333"
 
-    jwt_secret_key: str = Field(repr=False)
+    jwt_secret_key: str = Field(
+        repr=False,
+        validation_alias=AliasChoices("JWT_SECRET_KEY", "JWT_SECRET", "SECRET_KEY"),
+    )
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_minutes: int = 10080
@@ -23,10 +30,18 @@ class Settings(BaseSettings):
 
     local_upload_dir: str = "uploads"
     usda_api_key: str | None = None
-    gemini_api_key: str | None = None
+    gemini_api_key: str | None = Field(
+        default=None,
+        repr=False,
+        validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CLOUD_VISION_API_KEY"),
+    )
     gemini_vision_model: str = "gemini-1.5-flash"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(REPO_ROOT / ".env", BACKEND_ROOT / ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     @property
     def cors_origins(self) -> list[str]:

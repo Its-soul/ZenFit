@@ -12,4 +12,3 @@ uploads/
 postgres_data/
 redis_data/
 qdrant_data/
-
