@@ -3,14 +3,14 @@ from __future__ import annotations
 import asyncio
 import uuid
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 import pytest
 
 from app.ai.nutrition.food_lookup import FoodLookupService
 from app.ai.nutrition.meal_parser import MealTextParser
 from app.ai.nutrition.targets import NutritionTargetCalculator
-from app.ai.nutrition.vision import GeminiMealVisionService
+from app.ai.nutrition.vision import GeminiMealVisionService, MealVisionProviderError
 from app.db.session import get_db
 from app.dependencies import get_current_user
 from app.modules.nutrition.routes import router as nutrition_router
@@ -39,6 +39,15 @@ class FakeStructuredVision:
         assert image_bytes == b"image-bytes"
         assert content_type == "image/jpeg"
         return self.analysis
+
+
+class FakeProviderErrorVision:
+    async def analyze_meal(self, image_bytes: bytes, content_type: str) -> dict:
+        raise MealVisionProviderError(
+            "Gemini request failed with HTTP 403 PERMISSION_DENIED: API disabled",
+            status_code=403,
+            response_text='{"error":{"status":"PERMISSION_DENIED"}}',
+        )
 
 
 class FakeFoodLookup:
@@ -172,6 +181,65 @@ def test_gemini_response_validation_accepts_legacy_items_json():
     assert analysis["foods"] == [{"name": "pizza", "grams": 180.0}]
 
 
+def test_gemini_request_uses_current_rest_payload(monkeypatch, tmp_path):
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+        text = '{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}'
+        headers = {"content-type": "application/json"}
+
+        def json(self):
+            return {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {
+                                    "text": (
+                                        '{"meal_name":"pizza","foods":[{"name":"pizza","grams":180}],'
+                                        '"confidence":0.8,"needs_user_confirmation":true}'
+                                    )
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+
+    class FakeAsyncClient:
+        def __init__(self, timeout):
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url, headers, json):
+            captured["url"] = url
+            captured["headers"] = headers
+            captured["json"] = json
+            return FakeResponse()
+
+    monkeypatch.setattr("app.ai.nutrition.vision.httpx.AsyncClient", FakeAsyncClient)
+    monkeypatch.setattr("app.ai.nutrition.vision.settings.local_upload_dir", str(tmp_path))
+
+    service = GeminiMealVisionService(api_key="test-key", model="gemini-3.5-flash")
+    response = asyncio.run(service._call_gemini(b"image-bytes", "image/jpeg"))
+
+    part = captured["json"]["contents"][0]["parts"][0]
+    config = captured["json"]["generationConfig"]
+    assert captured["headers"] == {"x-goog-api-key": "test-key"}
+    assert captured["url"].endswith("/models/gemini-3.5-flash:generateContent")
+    assert "inline_data" in part
+    assert part["inline_data"]["mime_type"] == "image/jpeg"
+    assert "responseJsonSchema" in config
+    assert "responseSchema" not in config
+    assert response["candidates"]
+
+
 def test_image_analysis_calculates_macros_without_filename_matching(tmp_path, monkeypatch):
     monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
     service = NutritionService(db=None)
@@ -222,6 +290,18 @@ def test_image_analysis_common_meals_do_not_return_zero(tmp_path, monkeypatch, m
     assert result.detected_items
     assert result.estimate.name == meal_name.title()
     assert result.needs_user_confirmation is True
+
+
+def test_image_analysis_provider_error_is_not_502(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
+    service = NutritionService(db=None)
+    service.vision = FakeProviderErrorVision()
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
+
+    assert exc_info.value.status_code == 503
+    assert "PERMISSION_DENIED" in exc_info.value.detail
 
 
 def test_image_analysis_uses_model_macros_when_food_database_misses(tmp_path, monkeypatch):

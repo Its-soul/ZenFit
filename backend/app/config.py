@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         repr=False,
         validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CLOUD_VISION_API_KEY"),
     )
-    gemini_vision_model: str = "gemini-1.5-flash"
+    gemini_vision_model: str = "gemini-3.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=(REPO_ROOT / ".env", BACKEND_ROOT / ".env"),

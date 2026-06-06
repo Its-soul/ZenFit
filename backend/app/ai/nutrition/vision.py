@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import re
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -51,32 +52,32 @@ Required JSON shape:
 """
 
 RESPONSE_SCHEMA = {
-    "type": "OBJECT",
+    "type": "object",
     "properties": {
-        "meal_name": {"type": "STRING"},
+        "meal_name": {"type": "string"},
         "foods": {
-            "type": "ARRAY",
+            "type": "array",
             "items": {
-                "type": "OBJECT",
+                "type": "object",
                 "properties": {
-                    "name": {"type": "STRING"},
-                    "grams": {"type": "NUMBER"},
-                    "calories": {"type": "NUMBER"},
-                    "protein_g": {"type": "NUMBER"},
-                    "carbs_g": {"type": "NUMBER"},
-                    "fat_g": {"type": "NUMBER"},
-                    "confidence": {"type": "NUMBER"},
+                    "name": {"type": "string"},
+                    "grams": {"type": "number"},
+                    "calories": {"type": "number"},
+                    "protein_g": {"type": "number"},
+                    "carbs_g": {"type": "number"},
+                    "fat_g": {"type": "number"},
+                    "confidence": {"type": "number"},
                 },
                 "required": ["name", "grams"],
             },
         },
-        "calories": {"type": "NUMBER"},
-        "protein_g": {"type": "NUMBER"},
-        "carbs_g": {"type": "NUMBER"},
-        "fat_g": {"type": "NUMBER"},
-        "confidence": {"type": "NUMBER"},
-        "needs_user_confirmation": {"type": "BOOLEAN"},
-        "warnings": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "calories": {"type": "number"},
+        "protein_g": {"type": "number"},
+        "carbs_g": {"type": "number"},
+        "fat_g": {"type": "number"},
+        "confidence": {"type": "number"},
+        "needs_user_confirmation": {"type": "boolean"},
+        "warnings": {"type": "array", "items": {"type": "string"}},
     },
     "required": ["meal_name", "foods", "confidence", "needs_user_confirmation"],
 }
@@ -90,6 +91,13 @@ class MealVisionConfigurationError(MealVisionError):
     """Raised when the Gemini API key is not configured."""
 
 
+class MealVisionProviderError(MealVisionError):
+    def __init__(self, message: str, *, status_code: int | None = None, response_text: str | None = None):
+        super().__init__(message)
+        self.status_code = status_code
+        self.response_text = response_text
+
+
 class GeminiMealVisionService:
     def __init__(self, *, api_key: str | None = None, model: str | None = None, timeout_seconds: float = 20.0):
         self.api_key = api_key if api_key is not None else settings.gemini_api_key
@@ -101,18 +109,25 @@ class GeminiMealVisionService:
             logger.error("Gemini API key is not configured")
             raise MealVisionConfigurationError("Gemini API key is not configured")
 
-        logger.info(
-            "Starting Gemini meal image analysis",
+        logger.warning(
+            "Step 4: Gemini meal image analysis starting model=%s content_type=%s image_bytes=%s",
+            self.model,
+            content_type,
+            len(image_bytes),
             extra={"model": self.model, "content_type": content_type, "image_bytes": len(image_bytes)},
         )
 
         for attempt in range(2):
             try:
                 response = await self._call_gemini(image_bytes, content_type)
-                logger.info("Gemini meal image raw response", extra={"attempt": attempt + 1, "response": self._redact_response(response)})
+                logger.warning("Step 5: Raw Gemini response attempt=%s response=%s", attempt + 1, self._redact_response(response))
                 analysis = self.validate_response(response)
-                logger.info(
-                    "Gemini meal image parsed response",
+                logger.warning(
+                    "Step 6: Parsed Gemini response attempt=%s meal_name=%s food_count=%s confidence=%s",
+                    attempt + 1,
+                    analysis["meal_name"],
+                    len(analysis["foods"]),
+                    analysis["confidence"],
                     extra={
                         "attempt": attempt + 1,
                         "meal_name": analysis["meal_name"],
@@ -125,10 +140,19 @@ class GeminiMealVisionService:
                 logger.warning("Gemini meal response validation failed", extra={"attempt": attempt + 1, "error": str(exc)})
                 if attempt == 1:
                     raise MealVisionError(f"Gemini returned an unusable meal response: {exc}") from exc
+            except MealVisionProviderError as exc:
+                logger.warning(
+                    "Gemini provider error attempt=%s status_code=%s detail=%s",
+                    attempt + 1,
+                    exc.status_code,
+                    str(exc),
+                )
+                if attempt == 1 or not self._should_retry_provider_error(exc):
+                    raise
             except httpx.HTTPError as exc:
-                logger.warning("Gemini Vision API request failed", extra={"attempt": attempt + 1, "error": str(exc)})
+                logger.warning("Gemini transport error attempt=%s error=%s", attempt + 1, str(exc))
                 if attempt == 1:
-                    raise MealVisionError(f"Gemini Vision API request failed: {exc}") from exc
+                    raise MealVisionProviderError(f"Gemini transport error: {exc}") from exc
         raise MealVisionError("Gemini meal image analysis failed")
 
     async def detect_food_items(self, image_bytes: bytes, content_type: str) -> list[dict]:
@@ -137,26 +161,47 @@ class GeminiMealVisionService:
 
     async def _call_gemini(self, image_bytes: bytes, content_type: str) -> dict[str, Any]:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        encoded_image = base64.b64encode(image_bytes).decode("ascii")
+        logger.warning("Step 3: Image encoded for Gemini bytes=%s base64_chars=%s", len(image_bytes), len(encoded_image))
         payload = {
             "contents": [
                 {
                     "role": "user",
                     "parts": [
+                        {"inline_data": {"mime_type": content_type, "data": encoded_image}},
                         {"text": PROMPT},
-                        {"inlineData": {"mimeType": content_type, "data": base64.b64encode(image_bytes).decode("ascii")}},
                     ],
                 }
             ],
             "generationConfig": {
                 "responseMimeType": "application/json",
-                "responseSchema": RESPONSE_SCHEMA,
+                "responseJsonSchema": RESPONSE_SCHEMA,
                 "temperature": 0.1,
             },
         }
+        logger.warning(
+            "Step 4: Gemini request sent model=%s content_type=%s image_bytes=%s",
+            self.model,
+            content_type,
+            len(image_bytes),
+        )
         async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
-            response = await client.post(url, params={"key": self.api_key}, json=payload)
-            response.raise_for_status()
+            response = await client.post(url, headers={"x-goog-api-key": self.api_key}, json=payload)
+
+        self._store_debug_response(response)
+        if response.status_code >= 400:
+            message = self._provider_error_message(response)
+            logger.error(
+                "Gemini request failed status_code=%s response_text=%s",
+                response.status_code,
+                response.text[:2000],
+            )
+            raise MealVisionProviderError(message, status_code=response.status_code, response_text=response.text)
+        try:
             return response.json()
+        except json.JSONDecodeError as exc:
+            logger.error("Gemini returned non-JSON response status_code=%s response_text=%s", response.status_code, response.text[:2000])
+            raise MealVisionProviderError("Gemini returned a non-JSON response", status_code=response.status_code, response_text=response.text) from exc
 
     @staticmethod
     def validate_response(response: dict[str, Any] | str) -> dict[str, Any]:
@@ -239,3 +284,35 @@ class GeminiMealVisionService:
     def _redact_response(response: dict[str, Any]) -> str:
         text = json.dumps(response, ensure_ascii=True)
         return text[:4000]
+
+    @staticmethod
+    def _provider_error_message(response: httpx.Response) -> str:
+        try:
+            data = response.json()
+        except json.JSONDecodeError:
+            return f"Gemini request failed with HTTP {response.status_code}: {response.text[:500]}"
+        error = data.get("error") if isinstance(data, dict) else None
+        if isinstance(error, dict):
+            status = error.get("status") or "UNKNOWN"
+            message = error.get("message") or "Gemini request failed"
+            return f"Gemini request failed with HTTP {response.status_code} {status}: {message}"
+        return f"Gemini request failed with HTTP {response.status_code}: {response.text[:500]}"
+
+    @staticmethod
+    def _store_debug_response(response: httpx.Response) -> None:
+        try:
+            debug_dir = Path(settings.local_upload_dir) / "debug"
+            debug_dir.mkdir(parents=True, exist_ok=True)
+            debug_file = debug_dir / "gemini_last_response.json"
+            payload = {
+                "status_code": response.status_code,
+                "headers": {"content-type": response.headers.get("content-type")},
+                "text": response.text[:12000],
+            }
+            debug_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except OSError as exc:
+            logger.warning("Could not store Gemini debug response: %s", exc)
+
+    @staticmethod
+    def _should_retry_provider_error(exc: MealVisionProviderError) -> bool:
+        return exc.status_code in {408, 429, 500, 502, 503, 504}

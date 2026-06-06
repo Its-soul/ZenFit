@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.ai.nutrition.food_lookup import FoodLookupService
 from app.ai.nutrition.meal_parser import MealTextParser
 from app.ai.nutrition.targets import NutritionTargetCalculator
-from app.ai.nutrition.vision import GeminiMealVisionService, MealVisionConfigurationError, MealVisionError
+from app.ai.nutrition.vision import GeminiMealVisionService, MealVisionConfigurationError, MealVisionError, MealVisionProviderError
 from app.events.event_types import MEAL_LOGGED
 from app.events.producer import EventProducer
 from app.config import settings
@@ -64,8 +64,24 @@ class NutritionService:
         destination.write_bytes(content)
 
         image_path = str(destination).replace("\\", "/")
+        logger.warning(
+            "Step 1: Image received user_id=%s filename=%s content_type=%s",
+            str(user.id),
+            file.filename,
+            content_type,
+        )
+        logger.warning(
+            "Step 2: Image size bytes=%s saved_path=%s",
+            len(content),
+            image_path,
+        )
         logger.info(
-            "Meal image uploaded",
+            "Meal image uploaded user_id=%s filename=%s content_type=%s bytes=%s image_path=%s",
+            str(user.id),
+            file.filename,
+            content_type,
+            len(content),
+            image_path,
             extra={
                 "user_id": str(user.id),
                 "filename": file.filename,
@@ -87,12 +103,29 @@ class NutritionService:
         except MealVisionConfigurationError as exc:
             logger.error("Meal image analysis is not configured", extra={"user_id": str(user.id), "error": str(exc)})
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        except MealVisionProviderError as exc:
+            logger.error(
+                "Meal image provider error user_id=%s status_code=%s detail=%s",
+                str(user.id),
+                exc.status_code,
+                str(exc),
+            )
+            raise HTTPException(status_code=self._provider_http_status(exc), detail=str(exc)) from exc
         except MealVisionError as exc:
             logger.warning("Meal image analysis failed", extra={"user_id": str(user.id), "error": str(exc)})
-            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
         analysis.estimate.image_path = image_path
         analysis.estimate.analysis_explanation = analysis.explanation
+        logger.warning(
+            "Step 8: Final JSON meal_name=%s calories=%s protein_g=%s carbs_g=%s fat_g=%s confidence=%s",
+            analysis.estimate.name,
+            analysis.total_calories,
+            analysis.protein_g,
+            analysis.carbs_g,
+            analysis.fat_g,
+            analysis.confidence,
+        )
         return MealImageAnalysisResponse(
             **analysis.model_dump(),
             upload_url=f"/uploads/meals/{user.id}/{file_name}",
@@ -170,6 +203,7 @@ class NutritionService:
         methods = set()
         warnings = list(warnings or [])
 
+        logger.warning("Step 7: Nutrition lookup starting source=%s item_count=%s meal_name=%s", source, len(items), meal_name)
         logger.info("Starting nutrition mapping", extra={"source": source, "item_count": len(items), "meal_name": meal_name})
 
         for item in items:
@@ -240,8 +274,15 @@ class NutritionService:
         explanation = self._build_explanation(detected_items, method, warnings=warnings, needs_user_confirmation=needs_user_confirmation)
         final_meal_name = self._meal_name(detected_items, fallback=meal_name)
 
-        logger.info(
-            "Completed nutrition mapping",
+        logger.warning(
+            "Step 8: Nutrition mapping completed meal_name=%s calories=%s protein_g=%s carbs_g=%s fat_g=%s confidence=%s method=%s",
+            final_meal_name,
+            calories,
+            protein,
+            carbs,
+            fat,
+            confidence,
+            method,
             extra={
                 "source": source,
                 "meal_name": final_meal_name,
@@ -379,3 +420,11 @@ class NutritionService:
             return round(float(vision_totals.get("calories") or 0))
         except (TypeError, ValueError):
             return 0
+
+    @staticmethod
+    def _provider_http_status(exc: MealVisionProviderError) -> int:
+        if exc.status_code in {400, 415}:
+            return status.HTTP_422_UNPROCESSABLE_ENTITY
+        if exc.status_code in {401, 403, 404, 429, 500, 503, 504}:
+            return status.HTTP_503_SERVICE_UNAVAILABLE
+        return status.HTTP_503_SERVICE_UNAVAILABLE
