@@ -1,0 +1,10 @@
+{
+  "architecture": "efficientnet_b0",
+  "image_size": 224,
+  "batch_size": 32,
+  "epochs": 30,
+  "learning_rate": 0.0003,
+  "early_stopping_patience": 5,
+  "weighted_loss": true,
+  "random_seed": 42
+}

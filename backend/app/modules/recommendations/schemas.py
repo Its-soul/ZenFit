@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
+from typing import Literal
 
 
 class RecommendationResponse(BaseModel):
@@ -22,5 +23,5 @@ class RecommendationResponse(BaseModel):
 
 
 class RecommendationFeedbackRequest(BaseModel):
-    feedback_type: str
+    feedback_type: Literal["accepted", "dismissed", "ignored", "completed"]
     notes: str | None = None

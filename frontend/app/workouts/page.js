@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { ProtectedFeaturePage } from "@/components/layout/ProtectedFeaturePage";
 import { Button } from "@/components/ui/Button";
@@ -37,6 +38,7 @@ export default function WorkoutsPage() {
       title="Workouts"
       description="Plan your sessions and keep your week flexible when real life changes."
     >
+      <Link href="/workouts/form-check" className="mb-5 inline-flex rounded-xl bg-zenCream px-4 py-2 text-sm font-semibold text-slate-950">Open form checker</Link>
       <form className="grid gap-3 rounded-xl border border-white/10 bg-[#0f131d] p-4 md:grid-cols-5" onSubmit={handleSubmit}>
         <Input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
         <Input type="date" value={form.scheduled_date} onChange={(event) => setForm({ ...form, scheduled_date: event.target.value })} />

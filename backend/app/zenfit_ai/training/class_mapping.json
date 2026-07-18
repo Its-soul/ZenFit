@@ -1,0 +1,15 @@
+{
+  "canonical_classes": [
+    "chapati", "plain_rice", "jeera_rice", "biryani", "dal", "rajma", "chole",
+    "palak_paneer", "paneer_curry", "mixed_vegetable_curry", "poha", "upma",
+    "idli", "dosa", "sambar", "omelette", "boiled_egg", "fried_egg", "curd",
+    "salad", "paratha", "khichdi", "chicken_curry", "grilled_chicken", "fish_curry"
+  ],
+  "aliases": {
+    "roti": "chapati", "phulka": "chapati", "steamed_rice": "plain_rice",
+    "white_rice": "plain_rice", "dal_tadka": "dal", "yellow_dal": "dal",
+    "lentil_curry": "dal", "palak_paneer_curry": "palak_paneer",
+    "mixed_veg": "mixed_vegetable_curry", "vegetable_curry": "mixed_vegetable_curry",
+    "plain_dosa": "dosa", "masala_omelette": "omelette", "yogurt": "curd"
+  }
+}

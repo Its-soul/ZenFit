@@ -26,6 +26,9 @@ from app.events.producer import EventProducer
 from app.modules.auth.repository import UserRepository
 from app.modules.dashboard.service import DashboardService
 from app.modules.recommendations.repository import RecommendationRepository
+from app.zenfit_ai.memory.retriever import MemoryRetriever
+from app.zenfit_ai.prediction.adherence import predict_adherence
+from app.zenfit_ai.prediction.readiness import predict_readiness
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +57,25 @@ class AIEventHandler:
             text=memory_text,
             metadata={"category": category, "source_event_id": str(event.id), "importance": importance},
         )
+        # Dual-write durable summaries during migration; failures never block the established worker.
+        try:
+            v2_id = MemoryRetriever().write(
+                user_id=str(event.user_id), text=memory_text,
+                metadata={"category": category, "source": "domain_event", "source_event": str(event.id), "event_type": event.event_type, "importance": importance},
+            )
+            if v2_id:
+                logger.info("Dual-wrote durable memory to user_memory_v2 point=%s", v2_id)
+        except Exception as exc:
+            logger.warning("ZenFit AI v2 memory write unavailable for event %s: %s", event.id, exc)
+
+        prediction_features = {
+            "consecutive_missed": 1 if event.event_type == WORKOUT_MISSED else 0,
+            "avg_sleep_3d": (event.payload or {}).get("duration_hours"),
+            "reported_fatigue": (event.payload or {}).get("fatigue", 0),
+            "reported_soreness": (event.payload or {}).get("soreness", 0),
+        }
+        adherence_prediction = predict_adherence(prediction_features)
+        readiness_prediction = predict_readiness(prediction_features)
 
         replanning_result = None
         if event.event_type == WORKOUT_MISSED:
@@ -75,7 +97,7 @@ class AIEventHandler:
             input_summary=f"Processed {event.event_type}",
             output_summary=f"Generated {len(generated)} recommendations",
             retrieved_memory_ids=memory_ids,
-            scores={"recommendation_count": len(generated)},
+            scores={"recommendation_count": len(generated), "shadow_miss_probability": adherence_prediction.miss_probability, "readiness_score": readiness_prediction.score},
         )
         self.db.commit()
 

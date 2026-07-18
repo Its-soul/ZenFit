@@ -13,8 +13,7 @@ Requirements:
 Start everything:
 
 ```bash
-cp .env.example .env
-# Fill every placeholder before starting the stack.
+# Configure the ignored root .env for your local machine.
 docker compose up --build
 ```
 
@@ -89,3 +88,23 @@ Demo account password:
 ```text
 DemoPass123!
 ```
+
+## ZenFit AI
+
+The new free/open-source, local-first intelligence code lives in `backend/app/zenfit_ai/`. It coexists with the previous `backend/app/ai/` implementation while integrations migrate. Configure the ignored root `.env`; no `.env.example` files are used.
+
+```bash
+docker compose build backend worker
+docker compose run --rm backend python -m app.zenfit_ai.scripts.setup_models
+docker compose up
+docker compose run --rm backend python -m app.zenfit_ai.scripts.backfill_memory
+docker compose run --rm backend pytest -q app/zenfit_ai/tests
+docker compose run --rm backend python -m app.zenfit_ai.scripts.test_ai_stack
+docker compose exec backend pytest -q -m integration
+docker compose exec backend python -m app.zenfit_ai.scripts.evaluate_predictions
+docker compose exec backend python -m app.zenfit_ai.scripts.benchmark_ai --runs 20
+```
+
+The authenticated local meal endpoint is `POST /api/v1/nutrition/meals/analyze-image-local`; confirm/correct its result with `POST /api/v1/nutrition/meals/confirm-analysis`. The old meal endpoint remains available during migration. BGE models cache on first setup. FoodSAM, FoodSeg103, and Indian-food weights are optional and report unavailable until separately installed with compatible licenses.
+
+User interfaces are available at `/nutrition/meal-analysis` and `/workouts/form-check`. The form checker keeps camera frames in the browser and sends sampled landmarks. See `backend/app/zenfit_ai/docs/DEMO.md`, `MODELS.md`, and `DATASETS.md` for validated status and setup details.

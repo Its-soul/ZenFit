@@ -3,6 +3,7 @@ import logging
 from app.db.session import SessionLocal
 from app.core.qdrant_client import ensure_qdrant_collections
 from app.events.consumer import EventConsumer
+from app.zenfit_ai.registry import registry
 
 logging.basicConfig(
     level=logging.INFO,
@@ -12,6 +13,7 @@ logging.basicConfig(
 
 def main() -> None:
     ensure_qdrant_collections()
+    registry.prewarm()
     db = SessionLocal()
     try:
         EventConsumer(db).run_forever()

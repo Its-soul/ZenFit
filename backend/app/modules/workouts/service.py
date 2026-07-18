@@ -9,6 +9,8 @@ from app.events.producer import EventProducer
 from app.modules.auth.models import User
 from app.modules.workouts.repository import WorkoutRepository
 from app.modules.workouts.schemas import WorkoutRescheduleRequest, WorkoutSessionCreate
+from app.zenfit_ai.prediction.adherence import predict_adherence
+from app.zenfit_ai.prediction.audit import PredictionAuditService
 
 
 class WorkoutService:
@@ -38,6 +40,7 @@ class WorkoutService:
                 notes="Auto-created from your onboarding preferences.",
             ),
         )
+        self.db.flush(); self._record_shadow_prediction(user,session)
         self.db.commit()
         self.db.refresh(session)
         return session
@@ -45,6 +48,7 @@ class WorkoutService:
     def create_session(self, user: User, payload: WorkoutSessionCreate):
         self._validate_scheduled_date(payload.scheduled_date)
         session = self.workouts.create(user.id, payload)
+        self.db.flush(); self._record_shadow_prediction(user,session)
         self.db.commit()
         self.db.refresh(session)
         return session
@@ -55,6 +59,7 @@ class WorkoutService:
         self._ensure_not_future_session(session)
         session.status = "completed"
         session.completed_at = datetime.now(timezone.utc)
+        PredictionAuditService(self.db).record_outcome(user_id=user.id,entity_id=session.id,outcome="completed")
         self.events.emit(
             user_id=user.id,
             event_type=WORKOUT_COMPLETED,
@@ -70,6 +75,7 @@ class WorkoutService:
         self._ensure_not_future_session(session)
         session.status = "missed"
         session.completed_at = None
+        PredictionAuditService(self.db).record_outcome(user_id=user.id,entity_id=session.id,outcome="missed")
         self.events.emit(
             user_id=user.id,
             event_type=WORKOUT_MISSED,
@@ -98,6 +104,7 @@ class WorkoutService:
                     notes=f"Rescheduled from {session.scheduled_date.isoformat()}. {payload.reason or ''}".strip(),
                 ),
             )
+            self.db.flush(); self._record_shadow_prediction(user,replacement)
         else:
             replacement.notes = f"{replacement.notes or ''}\nReschedule note: {payload.reason or 'Moved from another session.'}".strip()
 
@@ -138,3 +145,8 @@ class WorkoutService:
     def _validate_scheduled_date(self, scheduled_date: date) -> None:
         if scheduled_date > date.today() + timedelta(days=366):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Workout dates must be within the next year")
+
+    def _record_shadow_prediction(self,user:User,session)->None:
+        features={"scheduled_hour":18,"day_of_week":session.scheduled_date.weekday(),"weekend_flag":int(session.scheduled_date.weekday()>=5)}
+        prediction=predict_adherence(features)
+        PredictionAuditService(self.db).record(user_id=user.id,prediction_type="adherence",entity_id=session.id,value=prediction.miss_probability,risk_level=prediction.risk_level,features=features,model_name=prediction.source,shadow_mode=prediction.shadow_mode)

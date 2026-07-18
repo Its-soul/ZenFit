@@ -21,6 +21,9 @@ from app.modules.users.routes import router as users_router
 from app.modules.workouts.routes import router as workouts_router
 from app.realtime.redis_listener import listen_for_realtime_messages
 from app.realtime.routes import router as websocket_router
+from app.zenfit_ai.routes import router as zenfit_ai_router
+from app.zenfit_ai.service import ZenFitAIService
+from app.zenfit_ai.registry import registry
 
 app = FastAPI(title=settings.app_name)
 Path(settings.local_upload_dir).mkdir(parents=True, exist_ok=True)
@@ -38,6 +41,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup() -> None:
     ensure_qdrant_collections()
+    registry.prewarm()
     app.state.realtime_stop_event = asyncio.Event()
     app.state.realtime_task = asyncio.create_task(listen_for_realtime_messages(app.state.realtime_stop_event))
 
@@ -58,6 +62,7 @@ def health():
         "service": settings.app_name,
         "redis": "ok" if redis_health() else "error",
         "qdrant": "ok" if qdrant_health() else "error",
+        "zenfit_ai": ZenFitAIService().health(),
     }
 
 
@@ -73,3 +78,4 @@ app.include_router(recovery_router, prefix=settings.api_v1_prefix)
 app.include_router(recommendations_router, prefix=settings.api_v1_prefix)
 app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(websocket_router)
+app.include_router(zenfit_ai_router, prefix=settings.api_v1_prefix)

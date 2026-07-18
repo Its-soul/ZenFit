@@ -1,12 +1,15 @@
 import time
 
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
+from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType
 
 from app.config import settings
+from app.zenfit_ai.config import get_ai_settings
 
 USER_MEMORY_COLLECTION = "user_memory"
 DEFAULT_VECTOR_SIZE = 384
+ZENFIT_AI_MEMORY_COLLECTION = "user_memory_v2"
+ZENFIT_AI_VECTOR_SIZE = 1024
 
 
 def get_qdrant_client() -> QdrantClient:
@@ -32,6 +35,17 @@ def ensure_qdrant_collections() -> None:
             collection_name=USER_MEMORY_COLLECTION,
             vectors_config=VectorParams(size=DEFAULT_VECTOR_SIZE, distance=Distance.COSINE),
         )
+    v2_collection = get_ai_settings().memory_collection
+    if v2_collection not in existing_names:
+        client.create_collection(
+            collection_name=v2_collection,
+            vectors_config=VectorParams(size=ZENFIT_AI_VECTOR_SIZE, distance=Distance.COSINE),
+        )
+    try:
+        client.create_payload_index(collection_name=v2_collection, field_name="user_id", field_schema=PayloadSchemaType.KEYWORD)
+    except Exception:
+        # Qdrant returns a harmless conflict when the index already exists.
+        pass
 
 
 def qdrant_health() -> bool:

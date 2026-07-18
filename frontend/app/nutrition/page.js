@@ -2,6 +2,7 @@
 
 import { Apple, Droplets, Search, Utensils } from "lucide-react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { NutritionScanCard } from "@/components/product/NutritionScanCard";
 import { ProtectedFeaturePage } from "@/components/layout/ProtectedFeaturePage";
@@ -87,6 +88,7 @@ export default function NutritionPage() {
       title="Nutrition"
       description="Scan first, adjust only when needed, and move on with a simple next step."
     >
+      <Link href="/nutrition/meal-analysis" className="mb-5 inline-flex rounded-xl bg-zenCream px-4 py-2 text-sm font-semibold text-slate-950">Open local meal analysis</Link>
       <NutritionScanCard
         previewUrl={previewUrl}
         progress={uploadProgress}

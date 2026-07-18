@@ -13,3 +13,5 @@ from app.modules.recommendations.feedback_models import RecommendationFeedback  
 from app.events.models import DomainEvent  # noqa: E402,F401
 from app.ai.observability import AIAuditLog  # noqa: E402,F401
 from app.ai.reports import AIWeeklyReport  # noqa: E402,F401
+from app.zenfit_ai.prediction.models import AIPrediction  # noqa: E402,F401
+from app.zenfit_ai.meal_scan.models import MealAnalysisCorrection  # noqa: E402,F401

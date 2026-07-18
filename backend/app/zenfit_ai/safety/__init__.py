@@ -1,0 +1,1 @@
+"""Transparent fitness safety rules."""
