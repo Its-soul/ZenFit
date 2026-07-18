@@ -557,7 +557,6 @@ frontend/components/product/
 ├── WeeklyWinsCard.js
 ├── ComebackCelebration.js
 ├── StreakRiskBanner.js
-├── NutritionScanCard.js
 ├── RecoveryStoryCard.js
 └── EmptyStateNudge.js
 ```

@@ -2,6 +2,8 @@
 
 No live deployment was performed. Root `render.yaml` and `backend/railway.toml` are preparation files and must be reviewed against the selected provider account before use; they contain no URLs or secrets.
 
+Use `deployment/ENVIRONMENT_CHECKLIST.md` for provider variables and `deployment/STAGE_1_CHECKLIST.md` for the online handoff. Production frontend builds require explicit HTTPS API and secure WebSocket URLs; localhost fallback is development-only.
+
 ## Deployment stage 1
 
 Set `AI_HEAVY_MODELS_ENABLED=false` and `AI_PREWARM_MODELS=false`. Validate the Next.js frontend, FastAPI backend, authentication, PostgreSQL migrations, Redis, Qdrant, manual meal logging, USDA when configured, ordinary APIs, and health endpoints. Health must report `heavy_models_enabled: false`. Do not install or fetch model artifacts in this stage.

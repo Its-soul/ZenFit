@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { getAccessToken } from "@/lib/authStorage";
+import { WS_URL } from "@/lib/runtimeConfig";
 
 export function useWebSocket(channel) {
   const [status, setStatus] = useState("idle");
@@ -12,8 +13,7 @@ export function useWebSocket(channel) {
     const token = getAccessToken();
     if (!token) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
-    const socket = new WebSocket(`${baseUrl}/${channel}?token=${encodeURIComponent(token)}`);
+    const socket = new WebSocket(`${WS_URL}/${channel}?token=${encodeURIComponent(token)}`);
 
     socket.onopen = () => setStatus("connected");
     socket.onclose = () => setStatus("closed");

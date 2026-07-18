@@ -17,6 +17,7 @@ alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
 Set `AI_HEAVY_MODELS_ENABLED=false` and `AI_PREWARM_MODELS=false` for the initial deployment.
+Build with the Docker argument `INSTALL_AI=false`. Configure the API and worker from [ENVIRONMENT_CHECKLIST.md](ENVIRONMENT_CHECKLIST.md), then execute [STAGE_1_CHECKLIST.md](STAGE_1_CHECKLIST.md).
 
 ## Worker
 
@@ -38,3 +39,12 @@ The scheduler is another optional process: `python -m app.workers.scheduler`.
 - Training and Kaggle data: `data/`; do not deploy it.
 
 `render.yaml` remains at repository root because Render Blueprints resolve repository build contexts there. Railway uses `backend/railway.toml` with the Railway project Root Directory set to `backend/`.
+
+## Future stages
+
+1. Stage 1: web app and manual/local fallbacks, heavy AI off.
+2. Stage 2: enable and measure BGE memory separately.
+3. Stage 3: produce real unknown/non-food evidence and pass classifier promotion gates.
+4. Stage 4: deploy only the promoted classifier artifact.
+5. Stage 5: evaluate FoodSAM separately.
+6. Stage 6: evaluate FoodSeg only if it adds measured value.

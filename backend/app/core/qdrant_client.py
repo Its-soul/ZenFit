@@ -13,7 +13,7 @@ ZENFIT_AI_VECTOR_SIZE = 1024
 
 
 def get_qdrant_client() -> QdrantClient:
-    return QdrantClient(url=settings.qdrant_url)
+    return QdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key)
 
 
 def ensure_qdrant_collections() -> None:

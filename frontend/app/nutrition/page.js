@@ -4,11 +4,10 @@ import { Apple, Droplets, Search, Utensils } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { NutritionScanCard } from "@/components/product/NutritionScanCard";
 import { ProtectedFeaturePage } from "@/components/layout/ProtectedFeaturePage";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { analyzeMealImage, createMeal, getTodayNutrition, lookupMeal } from "@/services/nutritionService";
+import { createMeal, getTodayNutrition, lookupMeal } from "@/services/nutritionService";
 
 function nutritionStory(nutrition) {
   const protein = nutrition?.protein_g || 0;
@@ -25,9 +24,6 @@ const emptyMealForm = { name: "", meal_type: "meal", calories: 0, protein_g: 0, 
 export default function NutritionPage() {
   const [nutrition, setNutrition] = useState(null);
   const [form, setForm] = useState(emptyMealForm);
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [analysis, setAnalysis] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [notice, setNotice] = useState("");
   const [manualOpen, setManualOpen] = useState(false);
   const [lookupQuery, setLookupQuery] = useState("");
@@ -44,28 +40,9 @@ export default function NutritionPage() {
   async function saveMeal(payload = form) {
     await createMeal(payload);
     setForm(emptyMealForm);
-    setAnalysis(null);
-    setPreviewUrl("");
     setManualOpen(false);
     setNotice("Meal saved. This helps ZenFit guide the rest of your day.");
     await loadNutrition();
-  }
-
-  async function handleImageChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setPreviewUrl(URL.createObjectURL(file));
-    setUploadProgress(1);
-    const response = await analyzeMealImage(file, setUploadProgress);
-    setAnalysis(response);
-    setForm({
-      ...response.estimate,
-      calories: response.estimate.calories,
-      protein_g: response.estimate.protein_g,
-      carbs_g: response.estimate.carbs_g,
-      fat_g: response.estimate.fat_g
-    });
-    setNotice("Review the estimate, make any quick edits, then save.");
   }
 
   async function handleLookup(event) {
@@ -74,7 +51,6 @@ export default function NutritionPage() {
     setLookupLoading(true);
     try {
       const response = await lookupMeal(lookupQuery);
-      setAnalysis(response);
       setForm(response.estimate);
       setManualOpen(true);
       setNotice("Review the USDA-backed lookup, make any quick edits, then save.");
@@ -86,19 +62,9 @@ export default function NutritionPage() {
   return (
     <ProtectedFeaturePage
       title="Nutrition"
-      description="Scan first, adjust only when needed, and move on with a simple next step."
+      description="Use local meal analysis or log nutrition manually, then move on with a simple next step."
     >
       <Link href="/nutrition/meal-analysis" className="mb-5 inline-flex rounded-xl bg-zenCream px-4 py-2 text-sm font-semibold text-slate-950">Open local meal analysis</Link>
-      <NutritionScanCard
-        previewUrl={previewUrl}
-        progress={uploadProgress}
-        analysis={analysis}
-        form={form}
-        onFile={handleImageChange}
-        onFormChange={setForm}
-        onSave={() => saveMeal()}
-      />
-
       {notice ? <p className="mt-4 text-sm text-zenSage">{notice}</p> : null}
 
       <section className="mt-5 grid gap-4 md:grid-cols-3">

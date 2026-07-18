@@ -7,6 +7,7 @@
 | Edit workout UI | `frontend/app/workouts/` |
 | Edit Meal Scan UI | `frontend/app/nutrition/meal-analysis/` |
 | Edit frontend API clients | `frontend/services/` |
+| Validate frontend deployment URLs | `frontend/lib/runtimeConfig.js` |
 | Edit authentication backend | `backend/app/modules/auth/` |
 | Edit workout backend | `backend/app/modules/workouts/` |
 | Edit nutrition database/API logic | `backend/app/modules/nutrition/` |

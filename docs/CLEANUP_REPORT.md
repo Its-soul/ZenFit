@@ -45,6 +45,6 @@ No development or production activation pointer existed. Metadata for versions 0
 
 ## Remaining technical debt
 
-- The legacy Gemini meal-vision provider is still imported by active nutrition service code and was not deleted blindly; decide separately whether to retire it in favor of the local Meal Scan path.
+- The legacy Gemini meal-vision provider was retired after its active imports, routes, frontend caller, settings, and tests were mapped. Local Meal Scan plus manual/USDA nutrition paths now own the supported flow.
 - Real model, device, load, and online deployment validation remain deferred.
 - Provider-specific Render/Railway resources, persistent Qdrant, and remote artifact credentials require account-level configuration.

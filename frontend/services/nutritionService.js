@@ -15,20 +15,6 @@ export async function lookupMeal(query) {
   return response.data;
 }
 
-export async function analyzeMealImage(file, onProgress) {
-  const formData = new FormData();
-  formData.append("file", file);
-  const response = await apiClient.post("/nutrition/meals/analyze-image", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-    onUploadProgress: (event) => {
-      if (onProgress && event.total) {
-        onProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    }
-  });
-  return response.data;
-}
-
 export async function analyzeMealImageLocal(file, onProgress) {
   const formData = new FormData(); formData.append("file", file);
   const response = await apiClient.post("/nutrition/meals/analyze-image-local", formData, {

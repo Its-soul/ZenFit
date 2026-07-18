@@ -48,6 +48,8 @@ Training is not imported by FastAPI startup. Dataset acquisition, preparation, t
 
 The canonical configuration loader is `backend/app/config.py`. `app/ai/config.py` only re-exports it for focused AI imports. PostgreSQL, Redis, Qdrant, and secrets come from environment configuration.
 
+Nutrition image recognition is owned by `app/ai/meal_scan`; there is no separate cloud-vision provider path. Manual entry, text lookup, correction, and confirmation remain business-module behavior.
+
 ## Common edit locations
 
 - Meal Scan: `backend/app/ai/meal_scan/`

@@ -8,6 +8,8 @@ Dataset execution now separates immutable `/data/raw/kaggle`, generated `/data/t
 
 `MealScanPipeline` validates images, uses FoodSAM regions only when available, otherwise tries whole-image classification, merges canonical detections, estimates non-exact portions, resolves reviewed local nutrition before USDA, and preserves manual correction.
 
+Meal Scan has no cloud vision provider dependency. With heavy models disabled or a local model unavailable, it returns an explicit unavailable/unknown decision and keeps manual food entry and USDA/local nutrition lookup available.
+
 ```mermaid
 flowchart LR
   UI[Web / client MediaPipe] --> API[FastAPI]

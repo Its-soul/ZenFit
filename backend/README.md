@@ -26,4 +26,4 @@ python -m pip install -r requirements-training.txt
 python -m pytest -q tests -m "not integration and not model and not load and not external_api and not device_manual"
 ```
 
-For Railway or Render, use `backend/` as the project root and `Dockerfile`. Initial deployments must set `AI_HEAVY_MODELS_ENABLED=false` and `AI_PREWARM_MODELS=false`. Build with `INSTALL_AI=true` only for a later, adequately provisioned AI stage after model promotion passes.
+For Railway or Render, use `backend/` as the project root and `Dockerfile`. Initial deployments must set `AI_HEAVY_MODELS_ENABLED=false` and `AI_PREWARM_MODELS=false`, and keep the `INSTALL_AI=false` build default. Use `INSTALL_AI=true` only for a later, adequately provisioned AI stage after model promotion passes. No cloud meal-vision key is required.

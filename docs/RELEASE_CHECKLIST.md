@@ -4,6 +4,8 @@ Recovery evidence (2026-07-18): pipeline diagnostic PASS; tiny overfit PASS; exp
 
 Build-only open-set update (2026-07-18): open-set decision code PASS; food-detector interface PASS; stored-evidence evaluation and threshold analysis PASS with synthetic logic only; checksum artifact infrastructure PASS with fake files; heavy-model execution NOT_APPLICABLE for this stage; real unknown-food/non-food evaluation BLOCKED; open-set evidence-size gate BLOCKED; deployment configuration PASS for static preparation and BLOCKED for online validation; development and production model activation BLOCKED.
 
+Stage-1 cloud preparation (2026-07-18): legacy cloud meal vision retired; manual/USDA and local Meal Scan fallback retained; lightweight provider configs prepared; no deployment performed. Online deployment checks remain NOT TESTED in `deployment/STAGE_1_CHECKLIST.md`.
+
 Allowed states are `PASS`, `FAIL`, `BLOCKED`, and `NOT_APPLICABLE`. Evidence belongs in the final column; an unchecked item is `BLOCKED`.
 
 | Gate | Status | Evidence |

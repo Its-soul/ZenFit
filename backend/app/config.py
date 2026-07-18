@@ -13,10 +13,12 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_v1_prefix: str = "/api/v1"
     backend_cors_origins: str = "http://localhost:3000"
+    backend_cors_origin_regex: str | None = None
 
     database_url: str
     redis_url: str = "redis://localhost:6379/0"
     qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str | None = Field(default=None, repr=False)
 
     jwt_secret_key: str = Field(
         repr=False,
@@ -30,13 +32,6 @@ class Settings(BaseSettings):
 
     local_upload_dir: str = "uploads"
     usda_api_key: str | None = Field(default=None, repr=False, validation_alias=AliasChoices("USDA_FDC_API_KEY", "USDA_API_KEY"))
-    gemini_api_key: str | None = Field(
-        default=None,
-        repr=False,
-        validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_CLOUD_VISION_API_KEY"),
-    )
-    gemini_vision_model: str = "gemini-3.5-flash"
-
     device: str = Field(default="cpu", validation_alias="AI_DEVICE")
     model_cache_dir: Path = Field(default=REPO_ROOT / "data" / "models", validation_alias="AI_MODEL_CACHE_DIR")
     embedding_model: str = Field(default="BAAI/bge-m3", validation_alias="BGE_EMBEDDING_MODEL")

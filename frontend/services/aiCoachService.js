@@ -1,5 +1,6 @@
 import apiClient, { refreshAuthSession } from "./apiClient";
 import { getAccessToken } from "@/lib/authStorage";
+import { API_URL } from "@/lib/runtimeConfig";
 
 export async function sendCoachMessage(message) {
   const response = await apiClient.post("/ai-coach/messages", { message });
@@ -7,8 +8,7 @@ export async function sendCoachMessage(message) {
 }
 
 export async function streamCoachMessage(message, { onToken, onMetadata } = {}) {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-  const makeRequest = () => fetch(`${baseURL}/ai-coach/messages/stream`, {
+  const makeRequest = () => fetch(`${API_URL}/ai-coach/messages/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

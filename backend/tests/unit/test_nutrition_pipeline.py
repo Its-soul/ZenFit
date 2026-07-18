@@ -1,53 +1,23 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import uuid
+from types import SimpleNamespace
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
+from PIL import Image
 
+from app.ai.meal_scan.pipeline import MealScanPipeline
 from app.ai.nutrition.food_lookup import FoodLookupService
 from app.ai.nutrition.meal_parser import MealTextParser
 from app.ai.nutrition.targets import NutritionTargetCalculator
-from app.ai.nutrition.vision import GeminiMealVisionService, MealVisionProviderError
 from app.db.session import get_db
 from app.dependencies import get_current_user
 from app.modules.nutrition.routes import router as nutrition_router
 from app.modules.nutrition.schemas import MealLookupResponse
 from app.modules.nutrition.service import NutritionService
-
-
-class FakeUploadFile:
-    filename = "meal.jpg"
-    content_type = "image/jpeg"
-
-    async def read(self) -> bytes:
-        return b"image-bytes"
-
-
-class FakeVision:
-    async def detect_food_items(self, image_bytes: bytes, content_type: str) -> list[dict]:
-        return [{"name": "chicken breast", "grams": 100}, {"name": "rice", "grams": 150}]
-
-
-class FakeStructuredVision:
-    def __init__(self, analysis: dict):
-        self.analysis = analysis
-
-    async def analyze_meal(self, image_bytes: bytes, content_type: str) -> dict:
-        assert image_bytes == b"image-bytes"
-        assert content_type == "image/jpeg"
-        return self.analysis
-
-
-class FakeProviderErrorVision:
-    async def analyze_meal(self, image_bytes: bytes, content_type: str) -> dict:
-        raise MealVisionProviderError(
-            "Gemini request failed with HTTP 403 PERMISSION_DENIED: API disabled",
-            status_code=403,
-            response_text='{"error":{"status":"PERMISSION_DENIED"}}',
-        )
 
 
 class FakeFoodLookup:
@@ -91,16 +61,14 @@ class FakeUser:
 
 
 def test_meal_text_parser_supports_units():
-    items = MealTextParser().parse("100g chicken breast and 2 eggs, 1 cup rice")
-
-    assert items == [
+    assert MealTextParser().parse("100g chicken breast and 2 eggs, 1 cup rice") == [
         {"name": "chicken breast", "grams": 100},
         {"name": "eggs", "grams": 100},
         {"name": "rice", "grams": 150},
     ]
 
 
-def test_target_calculator_uses_mifflin_st_jeor_and_goal_modifier():
+def test_target_calculator_uses_profile_and_goal():
     result = NutritionTargetCalculator().calculate(
         weight_kg=80,
         height_cm=180,
@@ -109,7 +77,6 @@ def test_target_calculator_uses_mifflin_st_jeor_and_goal_modifier():
         training_frequency=5,
         goal="Build muscle",
     )
-
     assert result == {"calorie_target": 2994, "protein_target_g": 128.0, "targets_are_estimated": False}
 
 
@@ -122,226 +89,51 @@ def test_target_calculator_marks_missing_data_estimated():
         training_frequency=None,
         goal="Maintain",
     )
-
     assert result["targets_are_estimated"] is True
     assert result["protein_target_g"] == 98.0
 
 
-def test_food_lookup_fallback_returns_labeled_usda_based_values():
-    result = asyncio.run(FoodLookupService(api_key=None).search("2 eggs"))
-
-    assert result["name"] == "whole egg"
-    assert result["analysis_method"] == "fallback"
-
+def test_food_lookup_fallback_is_labeled():
     result = asyncio.run(FoodLookupService(api_key=None).search("eggs"))
-
     assert result["name"] == "whole egg"
     assert result["analysis_method"] == "fallback"
     assert result["protein_per_100g"] == 12.56
 
 
-def test_gemini_response_validation_accepts_structured_json():
-    response = {
-        "candidates": [
-            {
-                "content": {
-                    "parts": [
-                        {
-                            "text": (
-                                '{"meal_name":"chicken rice plate","foods":['
-                                '{"name":"Chicken Breast","grams":150,"calories":248,"protein_g":46.5,"carbs_g":0,"fat_g":5.4},'
-                                '{"name":"White Rice","grams":180,"calories":234,"protein_g":4.8,"carbs_g":50.7,"fat_g":0.5}'
-                                '],"calories":482,"protein_g":51.3,"carbs_g":50.7,"fat_g":5.9,'
-                                '"confidence":0.86,"needs_user_confirmation":false}'
-                            )
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-
-    analysis = GeminiMealVisionService.validate_response(response)
-
-    assert analysis["meal_name"] == "chicken rice plate"
-    assert analysis["confidence"] == 0.86
-    assert analysis["foods"][0]["name"] == "chicken breast"
-    assert analysis["foods"][0]["grams"] == 150.0
-    assert analysis["foods"][0]["calories"] == 248.0
-    assert analysis["foods"][1]["name"] == "white rice"
-    assert analysis["foods"][1]["grams"] == 180.0
-
-
-def test_gemini_response_validation_accepts_legacy_items_json():
-    response = {"items": [{"name": "Pizza", "grams": 180}]}
-
-    analysis = GeminiMealVisionService.validate_response(response)
-
-    assert analysis["meal_name"] == "pizza"
-    assert analysis["foods"] == [{"name": "pizza", "grams": 180.0}]
-
-
-def test_gemini_request_uses_current_rest_payload(monkeypatch, tmp_path):
-    captured = {}
-
-    class FakeResponse:
-        status_code = 200
-        text = '{"candidates":[{"content":{"parts":[{"text":"{}"}]}}]}'
-        headers = {"content-type": "application/json"}
-
-        def json(self):
-            return {
-                "candidates": [
-                    {
-                        "content": {
-                            "parts": [
-                                {
-                                    "text": (
-                                        '{"meal_name":"pizza","foods":[{"name":"pizza","grams":180}],'
-                                        '"confidence":0.8,"needs_user_confirmation":true}'
-                                    )
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-
-    class FakeAsyncClient:
-        def __init__(self, timeout):
-            self.timeout = timeout
-
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc, tb):
-            return False
-
-        async def post(self, url, headers, json):
-            captured["url"] = url
-            captured["headers"] = headers
-            captured["json"] = json
-            return FakeResponse()
-
-    monkeypatch.setattr("app.ai.nutrition.vision.httpx.AsyncClient", FakeAsyncClient)
-    monkeypatch.setattr("app.ai.nutrition.vision.settings.local_upload_dir", str(tmp_path))
-
-    service = GeminiMealVisionService(api_key="test-key", model="gemini-3.5-flash")
-    response = asyncio.run(service._call_gemini(b"image-bytes", "image/jpeg"))
-
-    part = captured["json"]["contents"][0]["parts"][0]
-    config = captured["json"]["generationConfig"]
-    assert captured["headers"] == {"x-goog-api-key": "test-key"}
-    assert captured["url"].endswith("/models/gemini-3.5-flash:generateContent")
-    assert "inline_data" in part
-    assert part["inline_data"]["mime_type"] == "image/jpeg"
-    assert "responseJsonSchema" in config
-    assert "responseSchema" not in config
-    assert response["candidates"]
-
-
-def test_image_analysis_calculates_macros_without_filename_matching(tmp_path, monkeypatch):
-    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
+def test_text_lookup_calculates_usda_macros():
     service = NutritionService(db=None)
-    service.vision = FakeVision()
     service.food_lookup = FakeFoodLookup()
 
-    result = asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
+    result = asyncio.run(service.lookup_meal(FakeUser(), "100g chicken breast and 1 cup rice"))
 
     assert result.total_calories == 360
     assert result.protein_g == 35.1
     assert result.carbs_g == 42.3
     assert result.fat_g == 4.0
-    assert result.confidence == 1
-    assert result.analysis_method == "gemini_usda"
-    assert "meal.jpg" not in result.estimate.name.lower()
+    assert result.analysis_method == "usda"
 
 
-@pytest.mark.parametrize(
-    ("meal_name", "foods"),
-    [
-        ("pizza slice", [{"name": "pizza", "grams": 180}]),
-        ("burger meal", [{"name": "burger", "grams": 220}, {"name": "french fries", "grams": 90}]),
-        ("fruit bowl", [{"name": "mixed fruits", "grams": 250}]),
-        ("indian thali", [{"name": "rice", "grams": 160}, {"name": "dal", "grams": 140}, {"name": "chapati", "grams": 60}, {"name": "sabzi", "grams": 120}]),
-        ("chole bhature plate", [{"name": "chole bhature", "grams": 320}, {"name": "curd", "grams": 80}]),
-        ("dosa breakfast", [{"name": "masala dosa", "grams": 180}, {"name": "chutney", "grams": 40}]),
-        ("beverage", [{"name": "chai", "grams": 220}]),
-    ],
-)
-def test_image_analysis_common_meals_do_not_return_zero(tmp_path, monkeypatch, meal_name, foods):
-    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
-    service = NutritionService(db=None)
-    service.food_lookup = FoodLookupService(api_key=None)
-    service.vision = FakeStructuredVision(
-        {
-            "meal_name": meal_name,
-            "foods": foods,
-            "confidence": 0.72,
-            "needs_user_confirmation": True,
-            "warnings": ["Image portions are estimated."],
-        }
+def test_local_meal_scan_returns_manual_fallback_when_heavy_models_disabled(monkeypatch):
+    monkeypatch.setattr(
+        "app.ai.meal_scan.pipeline.get_ai_settings",
+        lambda: SimpleNamespace(heavy_models_enabled=False),
     )
+    image = Image.new("RGB", (16, 16), color="white")
+    content = io.BytesIO()
+    image.save(content, format="PNG")
 
-    result = asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
+    result = asyncio.run(MealScanPipeline().analyze(content.getvalue()))
 
-    assert result.total_calories > 0
-    assert result.carbs_g + result.protein_g + result.fat_g > 0
-    assert result.detected_items
-    assert result.estimate.name == meal_name.title()
-    assert result.needs_user_confirmation is True
-
-
-def test_image_analysis_provider_error_is_not_502(tmp_path, monkeypatch):
-    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
-    service = NutritionService(db=None)
-    service.vision = FakeProviderErrorVision()
-
-    with pytest.raises(HTTPException) as exc_info:
-        asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
-
-    assert exc_info.value.status_code == 503
-    assert "PERMISSION_DENIED" in exc_info.value.detail
-
-
-def test_image_analysis_uses_model_macros_when_food_database_misses(tmp_path, monkeypatch):
-    monkeypatch.setattr("app.modules.nutrition.service.settings.local_upload_dir", str(tmp_path))
-    service = NutritionService(db=None)
-    service.food_lookup = FoodLookupService(api_key=None)
-    service.vision = FakeStructuredVision(
-        {
-            "meal_name": "regional mixed plate",
-            "foods": [
-                {
-                    "name": "unknown regional curry",
-                    "grams": 180,
-                    "calories": 260,
-                    "protein_g": 9,
-                    "carbs_g": 24,
-                    "fat_g": 14,
-                    "confidence": 0.48,
-                }
-            ],
-            "confidence": 0.48,
-            "needs_user_confirmation": True,
-            "warnings": ["Food match is uncertain."],
-        }
-    )
-
-    result = asyncio.run(service.analyze_meal_image(FakeUser(), FakeUploadFile()))
-
-    assert result.total_calories == 260
-    assert result.protein_g == 9
-    assert result.detected_items[0].analysis_method == "vision_estimate"
-    assert result.needs_user_confirmation is True
+    assert result.recognition_decision.value == "MODEL_UNAVAILABLE"
+    assert result.foods == []
+    assert "manually" in result.recognition_message.lower()
+    assert result.recognition_reason_codes == ["heavy_models_disabled"]
 
 
 def test_today_targets_come_from_user_profile():
     service = NutritionService(db=None)
     service.nutrition = FakeNutritionRepository()
-
     result = service.today(FakeUser())
-
     assert result.calorie_target == 2994
     assert result.protein_target_g == 128.0
     assert result.targets_are_estimated is False
@@ -361,7 +153,7 @@ def test_meal_lookup_endpoint_contract(monkeypatch):
                 fat_g=3.6,
                 confidence=1,
                 analysis_method="usda",
-                explanation="Detected chicken breast cooked (100g). Nutrition values were retrieved from USDA FoodData Central.",
+                explanation="Nutrition values were retrieved from USDA FoodData Central.",
                 estimate={"name": "Chicken Breast Cooked", "meal_type": "meal", "calories": 165, "protein_g": 31, "carbs_g": 0, "fat_g": 3.6},
             )
 
@@ -375,3 +167,10 @@ def test_meal_lookup_endpoint_contract(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["estimate"]["calories"] == 165
+
+
+def test_legacy_cloud_image_routes_are_not_registered():
+    paths = {route.path for route in nutrition_router.routes}
+    assert "/nutrition/meals/analyze-image" not in paths
+    assert "/nutrition/meal-image/analyze" not in paths
+    assert "/nutrition/meals/analyze-image-local" in paths

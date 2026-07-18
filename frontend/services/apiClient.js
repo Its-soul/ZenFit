@@ -1,14 +1,15 @@
 import axios from "axios";
 
 import { clearAuthSession, getAccessToken, getRefreshToken, saveAuthSession } from "@/lib/authStorage";
+import { API_URL } from "@/lib/runtimeConfig";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
+  baseURL: API_URL,
   timeout: 15000
 });
 
 const refreshClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
+  baseURL: API_URL,
   timeout: 15000
 });
 

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.dependencies import get_current_user
 from app.modules.auth.models import User
-from app.modules.nutrition.schemas import MealCreate, MealImageAnalysisResponse, MealLookupRequest, MealLookupResponse, MealResponse, NutritionTodayResponse
+from app.modules.nutrition.schemas import MealCreate, MealLookupRequest, MealLookupResponse, MealResponse, NutritionTodayResponse
 from app.modules.nutrition.service import NutritionService
 from app.ai.config import get_ai_settings
 from app.ai.meal_scan.pipeline import MealScanPipeline
@@ -30,24 +30,6 @@ def create_meal(payload: MealCreate, current_user: User = Depends(get_current_us
 @router.post("/meals/lookup", response_model=MealLookupResponse)
 async def lookup_meal(payload: MealLookupRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return await NutritionService(db).lookup_meal(current_user, payload.query)
-
-
-@router.post("/meals/analyze-image", response_model=MealImageAnalysisResponse)
-async def analyze_meal_image(
-    file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    return await NutritionService(db).analyze_meal_image(current_user, file)
-
-
-@router.post("/meal-image/analyze", response_model=MealImageAnalysisResponse)
-async def analyze_meal_image_legacy(
-    file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    return await NutritionService(db).analyze_meal_image(current_user, file)
 
 
 @router.post("/meals/analyze-image-local", response_model=MealAnalysis)

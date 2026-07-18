@@ -4,7 +4,7 @@
 
 ```bash
 cp .env.example .env
-# Fill POSTGRES_PASSWORD, DATABASE_URL, JWT_SECRET_KEY, USDA_API_KEY, and GEMINI_API_KEY.
+# Fill POSTGRES_PASSWORD, DATABASE_URL, JWT_SECRET_KEY, and USDA_FDC_API_KEY when live USDA lookup is needed.
 docker compose up --build
 ```
 

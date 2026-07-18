@@ -53,22 +53,6 @@ class DetectedFoodItem(BaseModel):
     analysis_method: str | None = None
 
 
-class MealImageAnalysisResponse(BaseModel):
-    detected_items: list[DetectedFoodItem]
-    total_calories: int
-    protein_g: float
-    carbs_g: float
-    fat_g: float
-    confidence: float
-    analysis_method: str
-    explanation: str
-    needs_user_confirmation: bool = False
-    warnings: list[str] = Field(default_factory=list)
-    estimate: MealCreate
-    upload_url: str | None = None
-    image_path: str | None = None
-
-
 class MealLookupRequest(BaseModel):
     query: str = Field(min_length=2, max_length=500)
 

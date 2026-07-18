@@ -55,6 +55,8 @@ AI_HEAVY_MODELS_ENABLED=false
 AI_PREWARM_MODELS=false
 ```
 
+The Stage-1 runtime has no cloud meal-vision dependency. Meal Scan fails safely to manual logging when local heavy models are disabled. Build the backend image with `INSTALL_AI=false`.
+
 Runtime dependencies are in `backend/requirements.txt`; optional heavy AI dependencies are in `backend/requirements-ai.txt`; training dependencies are in `backend/requirements-training.txt`.
 
 Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/FILE_MAP.md](docs/FILE_MAP.md).
