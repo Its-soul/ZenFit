@@ -1,5 +1,7 @@
 # Model and Service Licenses
 
+Recovery models: baseline 0.2.0 reached 89.6% accuracy/0.898 macro F1; candidate 1.1.0 reached 89.4%/0.897 on the same 14-class CC0 v2 set. Both pass metric/license/calibration, but 1.1.0 fails rejection evidence and is not active.
+
 Validated 2026-07-18: EfficientNet candidates 0.1.0 and 1.0.0 exist locally. Version 1.0.0 used only the CC0-declared 5000 Indian Cuisines source, but fails the macro-F1 gate and is neither development- nor production-active. USDA live validation is READY. FoodSAM/FoodSeg remain NOT READY because the classifier prerequisite failed.
 
 Validated 2026-07-17: classifier lifecycle exists but dataset/weights do not (**NOT READY**); FoodSAM has no weights or 10-image evidence (**NOT READY**); FoodSeg103 is optional and outside the default path (**NOT READY**); USDA behavior is implemented but no configured key was available for a live test (**PARTIAL**).

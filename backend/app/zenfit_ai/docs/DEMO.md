@@ -1,5 +1,7 @@
 # End-to-End Development Demo
 
+Do not demo candidate 1.1.0 as active recognition. It passes supported-class metrics but fails unknown/non-food release evidence; demonstrate manual fallback until rejection is resolved.
+
 Current demo gate (2026-07-18): do not demonstrate automatic classification. Candidate 1.0.0 failed model-quality promotion. Demonstrate upload validation, honest unavailable state, manual correction, nutrition lookup, and confirmation only.
 
 Check `/ai/health` for an active Indian classifier version before demonstrating automatic recognition. Otherwise demonstrate the honest manual fallback and do not call classifier, FoodSAM, FoodSeg103, or USDA ready.

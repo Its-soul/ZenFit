@@ -1,5 +1,7 @@
 # Technical and UX Design
 
+Candidate 1.1.0 is not exposed despite high supported-class accuracy because unsupported foods are often forced into known labels. Manual correction remains the safe UX.
+
 The confidence UI continues to use manual fallback. Candidate 1.0.0 is not exposed because model-quality gates failed; low-confidence presentation is not a substitute for an unusable classifier.
 
 Meal review uses plain-language confidence and alternatives, editable quantities/grams, recalculated totals, and a permanent manual fallback. Technical model details and filesystem paths are not exposed.

@@ -6,6 +6,8 @@ from pathlib import Path
 DATASETS={
  "indian_food_101":("nehaprabhavalkar/indian-food-101","indian_food_101"),
  "5000_indian_cuisines":("campusx/5000-indian-cuisines-datasetwith-images","5000_indian_cuisines"),
+ "food_image_classification":("harishkumardatalab/food-image-classification-dataset","food_image_classification"),
+ "indian_food_images_80":("iamsouravbanerjee/indian-food-images-dataset","indian_food_images_80"),
 }
 
 def manifest(dataset_id,destination,status,metadata=None):

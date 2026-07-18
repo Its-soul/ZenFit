@@ -1,5 +1,7 @@
 # ZenFit AI Product Requirements
 
+Recovery update: explicit-label v2 data produced 0.898 macro F1, but development and production recognition remain BLOCKED because unknown-food rejection was 24% and the limited non-food gate did not pass.
+
 Execution update (2026-07-18): Kaggle data was acquired and a real classifier was trained, but its 0.048 macro F1 fails release gates. Automatic recognition remains BLOCKED; manual correction remains the supported meal path.
 
 Status (2026-07-17): automatic meal recognition is **NOT READY** without licensed training data and promoted weights. Manual entry, explicit correction, separate confidence dimensions, and opt-in training consent remain required.

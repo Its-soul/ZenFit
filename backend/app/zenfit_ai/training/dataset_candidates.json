@@ -1,0 +1,6 @@
+{
+  "datasets": [
+    {"id": "harishkumardatalab/food-image-classification-dataset", "role": "candidate_primary", "key": "food_image_classification"},
+    {"id": "iamsouravbanerjee/indian-food-images-dataset", "role": "candidate_research", "key": "indian_food_images_80"}
+  ]
+}

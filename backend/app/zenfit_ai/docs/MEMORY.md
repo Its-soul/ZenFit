@@ -1,5 +1,7 @@
 # Memory Architecture
 
+The research-only 80-class dataset is isolated from production artifacts and from user memory. No private meal images were used for recovery training or rejection evaluation.
+
 Training datasets and classifier artifacts remain outside semantic memory. Kaggle recipe metadata is not ingested into user memory, and no private meal images were used in this run.
 
 Privacy boundary: semantic memory contains user-scoped derived facts; meal corrections are separate; meal image bytes and raw pose video are not memory. Browser pose sends landmarks, not frames.

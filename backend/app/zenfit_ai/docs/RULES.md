@@ -1,5 +1,8 @@
 # Engineering Rules
 
+- Development activation requires dataset, metric, calibration, non-food, and latency gates. Production additionally requires license and regression gates.
+- Strong closed-set accuracy cannot override failed unknown/non-food rejection.
+
 - Production activation requires all dataset, license, metric, calibration, non-food, latency, and regression gates to pass.
 - Development activation still requires dataset, metric, and calibration gates; a bad research model is not activated merely because it trained.
 

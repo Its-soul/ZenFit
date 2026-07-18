@@ -15,10 +15,12 @@ qdrant_data/
 data/models/
 data/raw/kaggle/
 data/training/indian_food/
+data/training/indian_food_v2/
 data/training/reports/
 data/evaluation/meal_scan/private/
 data/uploads/
 backend/app/zenfit_ai/models/**/*.pt
 backend/app/zenfit_ai/models/**/*.pth
 backend/app/zenfit_ai/models/**/*.json
+backend/app/zenfit_ai/models/indian_food/*/
 !backend/app/zenfit_ai/models/.gitkeep

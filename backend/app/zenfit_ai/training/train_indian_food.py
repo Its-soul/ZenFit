@@ -22,21 +22,30 @@ def main():
     from torch import nn
     from torch.utils.data import DataLoader
     from torchvision.datasets import ImageFolder
+    from torchvision import transforms
     from torchvision.models import efficientnet_b0,EfficientNet_B0_Weights
-    seed=cfg["random_seed"];random.seed(seed);np.random.seed(seed);torch.manual_seed(seed);transform=EfficientNet_B0_Weights.DEFAULT.transforms();train=ImageFolder(args.dataset/"train",transform);val=ImageFolder(args.dataset/"val",transform);test=ImageFolder(args.dataset/"test",transform)
+    seed=cfg["random_seed"];random.seed(seed);np.random.seed(seed);torch.manual_seed(seed);aug=cfg.get("augmentation",{});normalize=transforms.Normalize([.485,.456,.406],[.229,.224,.225]);train_transform=transforms.Compose([transforms.RandomResizedCrop(cfg["image_size"],scale=tuple(aug.get("random_resized_crop_scale",[.8,1]))),transforms.RandomHorizontalFlip(aug.get("horizontal_flip_probability",.5)),transforms.RandomRotation(aug.get("rotation_degrees",8)),transforms.ColorJitter(brightness=aug.get("brightness",.15),contrast=aug.get("contrast",.15),saturation=aug.get("saturation",.1)),transforms.ToTensor(),normalize]);eval_transform=EfficientNet_B0_Weights.DEFAULT.transforms();train=ImageFolder(args.dataset/"train",train_transform);val=ImageFolder(args.dataset/"val",eval_transform);test=ImageFolder(args.dataset/"test",eval_transform)
     if not train.classes or train.classes!=val.classes or train.classes!=test.classes:raise ValueError("Non-empty train/val/test class folders must match")
     counts=Counter(train.targets);weights=torch.tensor([len(train)/(len(train.classes)*counts[i]) for i in range(len(train.classes))]);load=lambda ds,shuffle=False:DataLoader(ds,batch_size=cfg["batch_size"],shuffle=shuffle,num_workers=0)
-    model=efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT);model.classifier[1]=nn.Linear(model.classifier[1].in_features,len(train.classes));loss_fn=nn.CrossEntropyLoss(weight=weights if cfg["weighted_loss"] else None);opt=torch.optim.AdamW(model.parameters(),lr=cfg["learning_rate"]);output.mkdir(parents=True)
-    best=-1;wait=0;history=[]
-    for epoch in range(cfg["epochs"]):
-        model.train();train_loss=0
-        for x,y in load(train,True):opt.zero_grad();loss=loss_fn(model(x),y);loss.backward();opt.step();train_loss+=float(loss)*len(y)
-        model.eval();correct=total=0;val_loss=0
-        with torch.no_grad():
-            for x,y in load(val):logits=model(x);val_loss+=float(loss_fn(logits,y))*len(y);correct+=int((logits.argmax(1)==y).sum());total+=len(y)
-        score=correct/max(total,1);history.append({"epoch":epoch+1,"training_loss":train_loss/len(train),"validation_loss":val_loss/max(len(val),1),"validation_accuracy":score})
-        if score>best:best=score;wait=0;torch.save(model.state_dict(),output/"model.pt")
-        else:wait+=1
+    model=efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT);model.classifier[1]=nn.Linear(model.classifier[1].in_features,len(train.classes));loss_fn=nn.CrossEntropyLoss(weight=weights if cfg["weighted_loss"] else None);output.mkdir(parents=True)
+    best_loss=float("inf");best_accuracy=0;best_epoch=0;wait=0;history=[];global_epoch=0
+    for parameter in model.features.parameters():parameter.requires_grad=False
+    stages=(("head",cfg.get("head_epochs",3),cfg.get("head_learning_rate",1e-3)),("finetune",cfg.get("finetune_epochs",5),cfg.get("finetune_learning_rate",1e-4)))
+    for stage,epochs,learning_rate in stages:
+        if stage=="finetune":
+            for block in list(model.features.children())[-cfg.get("unfreeze_last_blocks",3):]:
+                for parameter in block.parameters():parameter.requires_grad=True
+        opt=torch.optim.AdamW((p for p in model.parameters() if p.requires_grad),lr=learning_rate)
+        for _ in range(epochs):
+            global_epoch+=1;model.train();train_loss=0;train_correct=0
+            for x,y in load(train,True):opt.zero_grad();logits=model(x);loss=loss_fn(logits,y);loss.backward();opt.step();train_loss+=float(loss)*len(y);train_correct+=int((logits.argmax(1)==y).sum())
+            model.eval();correct=total=0;val_loss=0
+            with torch.no_grad():
+                for x,y in load(val):logits=model(x);val_loss+=float(loss_fn(logits,y))*len(y);correct+=int((logits.argmax(1)==y).sum());total+=len(y)
+            score=correct/max(total,1);mean_val_loss=val_loss/max(len(val),1);history.append({"epoch":global_epoch,"stage":stage,"learning_rate":learning_rate,"training_loss":train_loss/len(train),"training_accuracy":train_correct/len(train),"validation_loss":mean_val_loss,"validation_accuracy":score})
+            if mean_val_loss<best_loss:best_loss=mean_val_loss;best_accuracy=score;best_epoch=global_epoch;wait=0;torch.save(model.state_dict(),output/"model.pt")
+            else:wait+=1
+            if wait>=cfg["early_stopping_patience"]:break
         if wait>=cfg["early_stopping_patience"]:break
     model.load_state_dict(torch.load(output/"model.pt",map_location="cpu",weights_only=True));model.eval()
     def infer(ds):
@@ -47,7 +56,7 @@ def main():
     val_logits,val_truth=infer(val);temperature=torch.ones(1,requires_grad=True);optimizer=torch.optim.LBFGS([temperature],lr=.05,max_iter=50);ce=nn.CrossEntropyLoss()
     def closure():optimizer.zero_grad();loss=ce(val_logits/temperature.clamp(.05,10),torch.tensor(val_truth));loss.backward();return loss
     optimizer.step(closure);temp=float(temperature.detach().clamp(.05,10));test_logits,truth=infer(test);probs=(test_logits/temp).softmax(1).numpy();pred=probs.argmax(1);report=classification_report(truth,pred,target_names=train.classes,output_dict=True,zero_division=0);matrix=confusion_matrix(truth,pred).tolist()
-    metrics={"sample_count":len(test),"accuracy":accuracy_score(truth,pred),"balanced_accuracy":balanced_accuracy_score(truth,pred),"macro_precision":report["macro avg"]["precision"],"macro_recall":report["macro avg"]["recall"],"macro_f1":report["macro avg"]["f1-score"],"weighted_precision":report["weighted avg"]["precision"],"weighted_recall":report["weighted avg"]["recall"],"weighted_f1":report["weighted avg"]["f1-score"],"top_3_accuracy":top_k_accuracy_score(truth,probs,k=min(3,len(train.classes)),labels=list(range(len(train.classes)))),"per_class":{name:report[name] for name in train.classes},"history":history,"best_validation_accuracy":best,"non_food_gate":False,"latency_gate":False,"regression_gate":False}
+    metrics={"sample_count":len(test),"accuracy":accuracy_score(truth,pred),"balanced_accuracy":balanced_accuracy_score(truth,pred),"macro_precision":report["macro avg"]["precision"],"macro_recall":report["macro avg"]["recall"],"macro_f1":report["macro avg"]["f1-score"],"weighted_precision":report["weighted avg"]["precision"],"weighted_recall":report["weighted avg"]["recall"],"weighted_f1":report["weighted avg"]["f1-score"],"top_3_accuracy":top_k_accuracy_score(truth,probs,k=min(3,len(train.classes)),labels=list(range(len(train.classes)))),"per_class":{name:report[name] for name in train.classes},"history":history,"best_epoch":best_epoch,"best_validation_loss":best_loss,"best_validation_accuracy":best_accuracy,"checkpoint":"model.pt","non_food_gate":False,"latency_gate":False,"regression_gate":False}
     cal=calibration(probs,truth)|{"temperature":temp,"fit_split":"validation","evaluation_split":"test"};split_manifest=args.dataset/"split_manifest.json";dataset_manifest=json.loads(split_manifest.read_text()) if split_manifest.exists() else {"dataset_version":args.dataset_version,"sources":[]}
     resolved=cfg|{"name":"indian_food_classifier","version":args.version,"dataset_version":args.dataset_version,"class_count":len(train.classes),"training_images":len(train),"validation_images":len(val),"test_images":len(test),"created_at":datetime.now(timezone.utc).isoformat(),"status":"candidate"}
     reproducibility={"random_seed":seed,"python":platform.python_version(),"torch":torch.__version__,"torchvision":__import__("torchvision").__version__,"command_config":resolved}

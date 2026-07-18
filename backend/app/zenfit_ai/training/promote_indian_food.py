@@ -19,7 +19,7 @@ def main():
     else:gates["dataset_gate"]["reason"]="missing: "+", ".join(missing)
     (root/"promotion_gates.json").write_text(json.dumps(gates,indent=2)) if root.exists() else None
     for name,value in gates.items():print(f"{name}: {value['status']} - {value['reason']}")
-    required=GATES if args.environment=="production" else ("dataset_gate","metric_gate","calibration_gate")
+    required=GATES if args.environment=="production" else ("dataset_gate","metric_gate","calibration_gate","non_food_gate","latency_gate")
     if not all(gates[name]["status"]=="PASS" for name in required):raise SystemExit(f"{args.environment.upper()} PROMOTION BLOCKED")
     pointer="active.json" if args.environment=="production" else "development.json";(args.models_dir/pointer).write_text(json.dumps({"version":args.version},indent=2));print(f"Promoted {args.version} for {args.environment}")
 if __name__=="__main__":main()

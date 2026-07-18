@@ -1,5 +1,7 @@
 # Architecture
 
+Classifier training now uses explicit folder labels, pre-split exact/perceptual deduplication, conservative train-only augmentation, frozen-head training followed by partial-backbone fine-tuning, best-validation-loss restoration, and immutable evidence artifacts.
+
 Dataset execution now separates immutable `/data/raw/kaggle`, generated `/data/training`, immutable versioned model candidates, development/production activation pointers, and evidence-based promotion gates. No new AI subsystem was introduced.
 
 `MealScanPipeline` validates images, uses FoodSAM regions only when available, otherwise tries whole-image classification, merges canonical detections, estimates non-exact portions, resolves reviewed local nutrition before USDA, and preserves manual correction.

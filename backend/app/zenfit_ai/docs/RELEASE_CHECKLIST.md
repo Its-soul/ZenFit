@@ -1,5 +1,7 @@
 # AI Release Checklist
 
+Recovery evidence (2026-07-18): pipeline diagnostic PASS; tiny overfit PASS; explicit-label v2 dataset quality PASS; 0.2.0 baseline PASS; 1.1.0 metric/calibration/license/latency/regression PASS; non-food and unknown-food rejection BLOCKED; development and production promotion BLOCKED.
+
 Allowed states are `PASS`, `FAIL`, `BLOCKED`, and `NOT_APPLICABLE`. Evidence belongs in the final column; an unchecked item is `BLOCKED`.
 
 | Gate | Status | Evidence |

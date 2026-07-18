@@ -1,5 +1,7 @@
 # Implementation Phases
 
+Recovery phases A-E PASS: diagnostics, acquisition, audit, balanced v2, and baseline/full candidate training completed. Promotion is BLOCKED at rejection; FoodSAM/FoodSeg and CV load remain out of scope until this gate passes.
+
 2026-07-18 execution: Phases A-E PASS; smoke and full training completed; evaluation BLOCKED promotion on model quality. Ordered downstream meal/CV/load phases were not run because development classifier activation failed.
 
 Current gate: lifecycle, orchestration, and correction plumbing are implemented. Classifier training, segmentation evaluation, USDA live validation, physical pose validation, and the 100-DAU load run still require external assets or execution evidence.
