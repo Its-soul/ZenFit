@@ -4,7 +4,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType
 
 from app.config import settings
-from app.zenfit_ai.config import get_ai_settings
+from app.ai.config import get_ai_settings
 
 USER_MEMORY_COLLECTION = "user_memory"
 DEFAULT_VECTOR_SIZE = 384

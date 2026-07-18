@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "dataset_name": "",
+  "created_at": "",
+  "license_review_status": "pending",
+  "items": [
+    {
+      "relative_path": "private/unknown_food/example.jpg",
+      "truth": "unknown_food",
+      "expected_label": null,
+      "category": "example_unknown_class",
+      "source": "",
+      "license": "",
+      "sha256": "",
+      "consent_or_provenance": ""
+    }
+  ]
+}

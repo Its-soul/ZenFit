@@ -1,0 +1,11 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+healthcheckPath = "/api/v1/health"
+restartPolicyType = "ON_FAILURE"
+
+# Configure AI_HEAVY_MODELS_ENABLED=false and AI_PREWARM_MODELS=false in Railway.
+# Deploy the worker as a separate service with: python -m app.workers.main

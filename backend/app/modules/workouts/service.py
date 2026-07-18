@@ -9,8 +9,8 @@ from app.events.producer import EventProducer
 from app.modules.auth.models import User
 from app.modules.workouts.repository import WorkoutRepository
 from app.modules.workouts.schemas import WorkoutRescheduleRequest, WorkoutSessionCreate
-from app.zenfit_ai.prediction.adherence import predict_adherence
-from app.zenfit_ai.prediction.audit import PredictionAuditService
+from app.ai.predictions.adherence import predict_adherence
+from app.ai.predictions.audit import PredictionAuditService
 
 
 class WorkoutService:

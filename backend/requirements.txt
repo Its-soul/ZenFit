@@ -12,13 +12,4 @@ qdrant-client==1.11.3
 redis==5.0.8
 sqlalchemy==2.0.34
 uvicorn[standard]==0.30.6
-pytest==8.3.3
-numpy>=1.26,<3
 Pillow>=10.4,<12
-pandas>=2.2,<3
-scikit-learn>=1.5,<2
-sentence-transformers>=3.1,<4
-torch>=2.7,<3
-torchvision>=0.22,<1
-xgboost-cpu>=2.1,<4
-kaggle>=2.0,<3

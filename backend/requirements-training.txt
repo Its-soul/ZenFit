@@ -1,0 +1,5 @@
+-r requirements.txt
+-r requirements-ai.txt
+pandas>=2.2,<3
+kaggle>=2.0,<3
+pytest==8.3.3

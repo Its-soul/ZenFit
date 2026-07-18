@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: zenfit-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: AI_HEAVY_MODELS_ENABLED
+        value: "false"
+      - key: AI_PREWARM_MODELS
+        value: "false"
+      - key: AI_ARTIFACT_STORAGE_BACKEND
+        value: local
+  - type: worker
+    name: zenfit-worker
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: python -m app.workers.main
+    envVars:
+      - key: AI_HEAVY_MODELS_ENABLED
+        value: "false"
+      - key: AI_PREWARM_MODELS
+        value: "false"

@@ -26,9 +26,9 @@ from app.events.producer import EventProducer
 from app.modules.auth.repository import UserRepository
 from app.modules.dashboard.service import DashboardService
 from app.modules.recommendations.repository import RecommendationRepository
-from app.zenfit_ai.memory.retriever import MemoryRetriever
-from app.zenfit_ai.prediction.adherence import predict_adherence
-from app.zenfit_ai.prediction.readiness import predict_readiness
+from app.ai.memory.semantic_retriever import MemoryRetriever
+from app.ai.predictions.adherence import predict_adherence
+from app.ai.predictions.readiness import predict_readiness
 
 logger = logging.getLogger(__name__)
 

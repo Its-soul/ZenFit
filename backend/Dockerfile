@@ -10,9 +10,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+COPY requirements-ai.txt .
+ARG INSTALL_AI=false
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --index-url https://download.pytorch.org/whl/cpu torch==2.7.1 torchvision==0.22.1 \
-    && pip install -r requirements.txt
+    pip install -r requirements.txt \
+    && if [ "$INSTALL_AI" = "true" ]; then \
+         pip install --index-url https://download.pytorch.org/whl/cpu torch==2.7.1 torchvision==0.22.1 \
+         && pip install -r requirements-ai.txt; \
+       fi
 
 COPY . .
 

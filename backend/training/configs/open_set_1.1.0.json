@@ -1,0 +1,10 @@
+{
+  "model_version": "1.1.0",
+  "status": "experimental",
+  "supported_food_min_confidence": 0.57,
+  "unknown_below_confidence": 0.28,
+  "min_top1_top2_margin": 0.1,
+  "max_entropy": null,
+  "food_detector_threshold": null,
+  "energy_score_max": null
+}

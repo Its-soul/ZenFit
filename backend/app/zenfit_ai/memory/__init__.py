@@ -1,1 +1,0 @@
-"""User-scoped semantic memory."""

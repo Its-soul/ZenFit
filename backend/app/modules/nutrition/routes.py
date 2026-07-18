@@ -6,12 +6,12 @@ from app.dependencies import get_current_user
 from app.modules.auth.models import User
 from app.modules.nutrition.schemas import MealCreate, MealImageAnalysisResponse, MealLookupRequest, MealLookupResponse, MealResponse, NutritionTodayResponse
 from app.modules.nutrition.service import NutritionService
-from app.zenfit_ai.config import get_ai_settings
-from app.zenfit_ai.meal_scan.pipeline import MealScanPipeline
-from app.zenfit_ai.meal_scan.schemas import ConfirmationRequest, MealAnalysis
-from app.zenfit_ai.meal_scan.nutrition import USDANutritionClient
-from app.zenfit_ai.meal_scan.storage import MealAnalysisStore
-from app.zenfit_ai.meal_scan.models import MealAnalysisCorrection
+from app.ai.config import get_ai_settings
+from app.ai.meal_scan.pipeline import MealScanPipeline
+from app.ai.meal_scan.schemas import ConfirmationRequest, MealAnalysis
+from app.ai.meal_scan.nutrition import USDANutritionClient
+from app.ai.meal_scan.storage import MealAnalysisStore
+from app.ai.meal_scan.models import MealAnalysisCorrection
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 local_pipeline = MealScanPipeline()

@@ -1,0 +1,10 @@
+{
+  "status": "PROJECT RELEASE GATES",
+  "minimum_supported_food_samples": 140,
+  "minimum_unknown_food_classes": 5,
+  "minimum_unknown_food_images": 100,
+  "minimum_non_food_categories": 6,
+  "minimum_non_food_images": 100,
+  "minimum_unknown_food_rejection_rate": 0.8,
+  "minimum_non_food_rejection_rate": 0.8
+}

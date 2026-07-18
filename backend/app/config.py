@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     password_reset_return_token: bool = False
 
     local_upload_dir: str = "uploads"
-    usda_api_key: str | None = None
+    usda_api_key: str | None = Field(default=None, repr=False, validation_alias=AliasChoices("USDA_FDC_API_KEY", "USDA_API_KEY"))
     gemini_api_key: str | None = Field(
         default=None,
         repr=False,
@@ -37,10 +37,35 @@ class Settings(BaseSettings):
     )
     gemini_vision_model: str = "gemini-3.5-flash"
 
+    device: str = Field(default="cpu", validation_alias="AI_DEVICE")
+    model_cache_dir: Path = Field(default=REPO_ROOT / "data" / "models", validation_alias="AI_MODEL_CACHE_DIR")
+    embedding_model: str = Field(default="BAAI/bge-m3", validation_alias="BGE_EMBEDDING_MODEL")
+    reranker_model: str = Field(default="BAAI/bge-reranker-v2-m3", validation_alias="BGE_RERANKER_MODEL")
+    memory_collection: str = Field(default="user_memory_v2", validation_alias="QDRANT_MEMORY_COLLECTION")
+    adherence_model_path: Path = Field(default=REPO_ROOT / "data" / "models" / "adherence.json", validation_alias="ADHERENCE_MODEL_PATH")
+    readiness_model_path: Path = Field(default=REPO_ROOT / "data" / "models" / "readiness.json", validation_alias="READINESS_MODEL_PATH")
+    recommendation_model_path: Path = Field(default=REPO_ROOT / "data" / "models" / "recommendation.json", validation_alias="RECOMMENDATION_MODEL_PATH")
+    indian_food_model_path: Path = Field(default=REPO_ROOT / "data" / "models" / "indian_food.pt", validation_alias="INDIAN_FOOD_MODEL_PATH")
+    indian_food_classes_path: Path = Field(default=REPO_ROOT / "data" / "models" / "indian_food_classes.json", validation_alias="INDIAN_FOOD_CLASSES_PATH")
+    foodsam_model_dir: Path = Field(default=REPO_ROOT / "data" / "models" / "foodsam", validation_alias="FOODSAM_MODEL_DIR")
+    foodseg_model_dir: Path = Field(default=REPO_ROOT / "data" / "models" / "foodseg103", validation_alias="FOODSEG103_MODEL_DIR")
+    meal_upload_dir: Path = Field(default=REPO_ROOT / "data" / "uploads" / "meals", validation_alias="MEAL_UPLOAD_DIR")
+    max_meal_image_mb: int = Field(default=10, validation_alias="MAX_MEAL_IMAGE_MB")
+    shadow_mode: bool = Field(default=True, validation_alias="AI_SHADOW_MODE")
+    heavy_models_enabled: bool = Field(default=False, validation_alias="AI_HEAVY_MODELS_ENABLED")
+    prewarm_models: str = Field(default="false", validation_alias="AI_PREWARM_MODELS")
+    artifact_storage_backend: str = Field(default="local", validation_alias="AI_ARTIFACT_STORAGE_BACKEND")
+    artifact_local_dir: Path = Field(default=REPO_ROOT / "data" / "artifacts", validation_alias="AI_ARTIFACT_LOCAL_DIR")
+    artifact_s3_bucket: str | None = Field(default=None, validation_alias="AI_ARTIFACT_S3_BUCKET")
+    artifact_s3_endpoint: str | None = Field(default=None, validation_alias="AI_ARTIFACT_S3_ENDPOINT")
+    meal_classifier_high_confidence: float = Field(default=.80, validation_alias="MEAL_CLASSIFIER_HIGH_CONFIDENCE")
+    meal_classifier_min_confidence: float = Field(default=.55, validation_alias="MEAL_CLASSIFIER_MIN_CONFIDENCE")
+
     model_config = SettingsConfigDict(
         env_file=(REPO_ROOT / ".env", BACKEND_ROOT / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        protected_namespaces=("settings_",),
     )
 
     @property
@@ -60,6 +85,23 @@ class Settings(BaseSettings):
         ):
             raise ValueError("JWT_SECRET_KEY must be a unique secret with at least 32 characters")
         return value
+
+    @field_validator(
+        "model_cache_dir",
+        "adherence_model_path",
+        "readiness_model_path",
+        "recommendation_model_path",
+        "indian_food_model_path",
+        "indian_food_classes_path",
+        "foodsam_model_dir",
+        "foodseg_model_dir",
+        "meal_upload_dir",
+        "artifact_local_dir",
+        mode="after",
+    )
+    @classmethod
+    def resolve_project_path(cls, value: Path) -> Path:
+        return value if value.is_absolute() else REPO_ROOT / value
 
 
 @lru_cache
