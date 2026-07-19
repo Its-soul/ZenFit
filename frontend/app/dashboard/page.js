@@ -167,7 +167,6 @@ export default function DashboardPage() {
     <AppShell user={user} onLogout={logout}>
       <div className="space-y-5 pb-24 md:pb-0">
         <MomentumHero momentum={momentum} userName={user?.full_name?.split(" ")[0]} notice={notice} error={error} />
-        <MomentumStrip narratives={narratives} />
 
         <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
           <AdaptiveWorkoutCard
@@ -190,11 +189,12 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        <MomentumStrip narratives={narratives} />
         <HelpfulNudges items={dashboard?.recommendations || []} onFeedback={handleNudgeFeedback} />
       </div>
 
       <div className="fixed inset-x-4 bottom-4 z-30 md:hidden">
-        <Button className="w-full rounded-2xl py-4 shadow-2xl" onClick={completeWorkout} disabled={workout?.status !== "scheduled"}>
+        <Button className="w-full rounded-2xl py-3 shadow-[0_12px_32px_rgba(0,0,0,0.3)]" onClick={completeWorkout} disabled={workout?.status !== "scheduled"}>
           {momentum.action}
         </Button>
       </div>

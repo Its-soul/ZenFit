@@ -46,12 +46,12 @@ export default function MealAnalysisPage() {
       if (!active) return;
       const next = result?.meal_scan?.overall || "unavailable";
       setCapability(next);
-      if (next === "unavailable") setStatusNotice("Automatic recognition is currently unavailable. Upload preview and manual meal entry remain available.");
+      if (next === "unavailable") setStatusNotice("Automatic recognition is temporarily unavailable. You can still upload a photo and log this meal manually.");
       else if (next === "partial") setStatusNotice("Automatic recognition is limited. Review every detected food and portion before saving.");
     }).catch(() => {
       if (!active) return;
       setCapability("unavailable");
-      setStatusNotice("Meal scanning status is unavailable. Upload preview and manual meal entry remain available.");
+      setStatusNotice("Automatic recognition is temporarily unavailable. You can still upload a photo and log this meal manually.");
     });
     return () => { active = false; };
   }, []);
@@ -146,7 +146,7 @@ export default function MealAnalysisPage() {
   const scanDisabled = !file || capability === "unavailable" || capability === "checking" || Boolean(stage);
   return (
     <ProtectedFeaturePage title="Meal analysis" description="Upload a meal photo, review every estimate, and correct portions before saving.">
-      {statusNotice ? <div role="status" className="mb-5 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-sm leading-6 text-amber-100">{statusNotice}</div> : null}
+      {statusNotice ? <div role="status" className={`status-banner mb-5 ${capability === "unavailable" ? "status-banner--warning" : "status-banner--info"}`}>{statusNotice}</div> : null}
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <section className="panel min-w-0 rounded-2xl p-[clamp(1rem,3vw,1.25rem)]">
           <div className="flex items-center gap-2"><Camera className="h-5 w-5 text-zenSage" /><h2 className="font-semibold">Meal photo</h2></div>

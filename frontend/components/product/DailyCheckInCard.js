@@ -28,15 +28,17 @@ export function DailyCheckInCard({ selectedMood, onSelectMood, onSave }) {
           const active = selectedMood === item.id;
           return (
             <motion.button
+              type="button"
+              aria-pressed={active}
               whileTap={{ scale: 0.97 }}
               key={item.id}
               onClick={() => onSelectMood(item)}
-              className={`rounded-2xl border p-4 text-left transition ${
+              className={`min-h-24 rounded-2xl border p-4 text-left outline-none transition-[background-color,border-color,color,transform] focus-visible:ring-2 focus-visible:ring-zenSage ${
                 active ? "border-zenSage bg-zenSage text-[#121711]" : "border-white/10 bg-[#151d16] text-slate-200 hover:border-white/25"
               }`}
             >
               <Icon className="h-5 w-5" />
-              <p className="mt-3 text-sm font-semibold">{item.label}</p>
+              <p className="mt-3 text-sm font-semibold">{item.label}{active ? <span className="sr-only">, selected</span> : null}</p>
             </motion.button>
           );
         })}

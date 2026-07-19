@@ -19,8 +19,10 @@ const numericRules = {
 const ValueSummary = memo(function ValueSummary({ struggle }) {
   const values = ["A workout ready for today", "A recovery-aware intensity suggestion", "A simple nutrition target", "A coach prompt to adjust the plan", `A plan that accounts for: ${struggle}`];
   return (
-    <aside className="min-w-0 self-start rounded-[1.5rem] bg-zenCream p-5 text-[#121711] lg:sticky lg:top-8">
-      <p className="text-sm font-semibold">Your first value moment</p>
+    <aside className="min-w-0 self-start rounded-[1.5rem] bg-zenCream p-[clamp(1.25rem,3vw,1.5rem)] text-[#121711] lg:sticky lg:top-8">
+      <p className="text-sm font-semibold text-green-800">What you&apos;ll get first</p>
+      <h2 className="mt-2 text-2xl font-semibold leading-8">A plan that already feels possible.</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Your answers shape today&apos;s guidance. They are not a score.</p>
       <div className="mt-5 space-y-4">
         {values.map((item) => <p key={item} className="flex items-start gap-3 break-words text-sm leading-6"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-800" />{item}</p>)}
       </div>
@@ -30,11 +32,11 @@ const ValueSummary = memo(function ValueSummary({ struggle }) {
 
 function validateNumeric(field, value) {
   const rule = numericRules[field];
-  if (!value.trim()) return `${rule.label} is required.`;
+  if (!value.trim()) return `Add your ${rule.label.toLowerCase()} so we can personalize your plan.`;
   const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return `Enter a valid ${rule.label.toLowerCase()}.`;
-  if (rule.integer && !Number.isInteger(parsed)) return `${rule.label} must be a whole number.`;
-  if (parsed < rule.min || parsed > rule.max) return `${rule.label} must be between ${rule.min} and ${rule.max}.`;
+  if (!Number.isFinite(parsed)) return `Enter your ${rule.label.toLowerCase()} as a number so we can personalize your plan.`;
+  if (rule.integer && !Number.isInteger(parsed)) return `Enter your ${rule.label.toLowerCase()} as a whole number.`;
+  if (parsed < rule.min || parsed > rule.max) return `Enter a ${rule.label.toLowerCase()} between ${rule.min} and ${rule.max} so we can personalize your plan.`;
   return "";
 }
 
@@ -100,13 +102,14 @@ export default function OnboardingForm() {
     <form className="panel w-full max-w-5xl overflow-hidden rounded-[clamp(1.25rem,3vw,2rem)] p-[clamp(1.25rem,3vw,2rem)]" onSubmit={handleSubmit} noValidate>
       <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:gap-10">
         <div className="min-w-0">
-          <div className="mb-8 flex items-start gap-3">
+          <div className="mb-7 flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zenCream text-slate-950"><Target className="h-5 w-5" /></div>
             <div className="min-w-0"><p className="text-sm font-semibold text-zenSage">Welcome to ZenFit</p><h1 className="text-[clamp(1.75rem,5vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em]">Let&apos;s protect your momentum.</h1></div>
           </div>
           <p className="mb-6 max-w-xl text-sm leading-6 text-muted">ZenFit starts by understanding what usually breaks consistency. The first plan is built to survive real life.</p>
-          <section className="mb-6 rounded-[1.5rem] bg-[#151d16] p-4" aria-labelledby="rhythm-label">
+          <section className="mb-6 rounded-[1.5rem] border border-zenSage/10 bg-[#151d16] p-[clamp(1rem,3vw,1.25rem)]" aria-labelledby="rhythm-label">
             <p id="rhythm-label" className="flex items-center gap-2 text-sm font-semibold text-zenSage"><HeartPulse className="h-4 w-4" />What usually breaks your rhythm?</p>
+            <p className="mt-2 text-sm leading-6 text-muted">There is no wrong answer. This helps your plan bend when life changes.</p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {struggles.map((item) => <button type="button" key={item} aria-pressed={struggle === item} onClick={() => setStruggle(item)} className={`rounded-2xl border px-4 py-3 text-left text-sm outline-none transition-[background-color,border-color,color] focus-visible:ring-2 focus-visible:ring-zenSage ${struggle === item ? "border-zenSage bg-zenSage font-semibold text-[#121711] shadow-[0_0_0_1px_rgba(143,232,197,0.35)]" : "border-white/10 bg-[#0b0f17] text-slate-200 hover:border-white/25"}`}>{item}</button>)}
             </div>

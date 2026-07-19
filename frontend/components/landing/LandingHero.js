@@ -23,13 +23,13 @@ export default function LandingHero() {
           <h1 className="max-w-[12.5ch] text-[clamp(2.75rem,6.1vw,5.75rem)] font-semibold leading-[1.02] tracking-[-0.04em]">Fitness guidance that adapts to your real life.</h1>
           <p className="mt-6 max-w-[42rem] text-[clamp(1rem,1.6vw,1.125rem)] leading-[1.75] text-slate-700">ZenFit helps you stay consistent with personalized workouts, recovery insights, nutrition tracking, and an AI coach that understands your habits.</p>
           <div className="mt-8 flex flex-wrap gap-3 sm:mt-9">
-            <Link href="/auth/register" className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#121711] px-6 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-[#20281f] sm:flex-none">Start Free <ArrowRight className="h-4 w-4" /></Link>
-            <Link href="/auth/login" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#121711]/15 bg-white/60 px-6 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5 hover:bg-white sm:flex-none">See Demo</Link>
+            <Link href="/auth/register" className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#121711] px-6 py-3 text-base font-semibold text-white outline-none transition-[background-color,transform,box-shadow] hover:-translate-y-0.5 hover:bg-[#20281f] focus-visible:ring-2 focus-visible:ring-[#121711] focus-visible:ring-offset-2 sm:flex-none">Build my plan <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/auth/login" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-[#121711]/20 bg-white/60 px-6 py-3 text-base font-semibold outline-none transition-[background-color,border-color] hover:bg-white focus-visible:ring-2 focus-visible:ring-[#121711] focus-visible:ring-offset-2 sm:flex-none">Sign in</Link>
           </div>
         </div>
         <div className="mx-auto w-full max-w-[40rem] xl:max-w-[27.5rem]">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3 px-1 sm:mb-5 sm:flex-nowrap xl:-mx-8 xl:px-0">
-            <StatusCard dark title="Recovery Insight" body="Go lighter today" className="hero-status-card--recovery" />
+            <StatusCard dark title="Recovery insight" body="Today can be lighter" className="hero-status-card--recovery" />
             <StatusCard title="4 day streak" body="Small progress still counts" className="hero-status-card--streak" />
           </div>
           <HeroDashboardPreview />

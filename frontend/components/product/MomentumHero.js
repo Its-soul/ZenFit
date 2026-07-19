@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Flame, HeartPulse, RotateCcw, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
 const toneStyles = {
@@ -23,40 +20,30 @@ export function MomentumHero({ momentum, userName, notice, error }) {
   const Icon = icons[momentum.type] || ShieldCheck;
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-      className={`relative overflow-hidden rounded-[2rem] border bg-gradient-to-br p-6 md:p-8 ${toneStyles[momentum.tone] || toneStyles.sage}`}
-    >
-      <div className="absolute right-8 top-8 hidden h-28 w-28 rounded-full bg-white/10 blur-3xl md:block" />
-      <div className="relative grid gap-8 lg:grid-cols-[1fr_300px] lg:items-end">
+    <section className={`relative overflow-hidden rounded-[var(--radius-xl)] border bg-gradient-to-br p-[clamp(1.25rem,4vw,2rem)] ${toneStyles[momentum.tone] || toneStyles.sage}`}>
+      <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] lg:items-end">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-sm font-semibold text-zenSage">
             <Icon className="h-4 w-4" />
             {momentum.label}
           </p>
-          <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-[-0.04em] md:text-6xl">
+          <h1 className="mt-4 max-w-[18ch] text-[clamp(2rem,5vw,3.75rem)] font-semibold leading-[1.08] tracking-[-0.035em]">
             {momentum.title}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
             {momentum.subtitle}
           </p>
-          <p className="mt-5 text-sm text-slate-400">For {userName || "today"}: focus on the next action, not a perfect day.</p>
-          {notice ? <p className="mt-4 text-sm font-medium text-zenSage">{notice}</p> : null}
-          {error ? <p className="mt-4 text-sm text-red-200">{error}</p> : null}
+          <p className="mt-4 text-sm text-slate-300">{userName ? `${userName}, focus` : "Focus"} on the next action—not a perfect day.</p>
+          {notice ? <p role="status" className="status-banner status-banner--info mt-4">{notice}</p> : null}
+          {error ? <p role="alert" className="status-banner status-banner--danger mt-4">{error}</p> : null}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.35 }}
-          className="rounded-3xl bg-zenCream p-5 text-[#121711] shadow-2xl"
-        >
-          <p className="text-sm text-slate-600">Best next step</p>
-          <p className="mt-2 text-2xl font-semibold leading-8">{momentum.action}</p>
-        </motion.div>
+        <div className="rounded-[var(--radius-lg)] bg-zenCream p-5 text-[#121711] shadow-[var(--shadow-sm)]">
+          <p className="text-sm font-medium text-slate-600">Your next step</p>
+          <p className="mt-2 text-xl font-semibold leading-7 sm:text-2xl">{momentum.action}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">One useful action is enough for today.</p>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 }

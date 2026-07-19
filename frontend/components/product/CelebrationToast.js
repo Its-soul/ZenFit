@@ -11,7 +11,9 @@ export function CelebrationToast({ message }) {
           initial={{ opacity: 0, y: 20, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.96 }}
-          className="fixed bottom-6 right-6 z-40 max-w-sm rounded-3xl bg-zenCream p-5 text-[#121711] shadow-2xl"
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-20 left-4 right-4 z-40 rounded-3xl bg-zenCream p-5 text-[#121711] shadow-[var(--shadow-md)] sm:bottom-6 sm:left-auto sm:max-w-sm"
         >
           <p className="flex items-center gap-2 text-sm font-semibold">
             <Sparkles className="h-4 w-4" />

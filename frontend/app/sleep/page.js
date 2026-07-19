@@ -7,6 +7,7 @@ import { RecoveryStoryCard } from "@/components/product/RecoveryStoryCard";
 import { ProtectedFeaturePage } from "@/components/layout/ProtectedFeaturePage";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Field } from "@/components/ui/Field";
 import { todayIsoDate } from "@/lib/date";
 import { createSleepLog, getSleepLogs } from "@/services/sleepService";
 
@@ -58,7 +59,7 @@ function sleepStory(logs) {
 
 export default function SleepPage() {
   const [logs, setLogs] = useState([]);
-  const [form, setForm] = useState({ sleep_date: todayIsoDate(), duration_hours: 7.5, quality_score: 80, notes: "" });
+  const [form, setForm] = useState({ sleep_date: todayIsoDate(), duration_hours: "7.5", quality_score: "80", notes: "" });
   const [notice, setNotice] = useState("");
 
   async function loadLogs() {
@@ -71,7 +72,7 @@ export default function SleepPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    await createSleepLog(form);
+    await createSleepLog({ ...form, duration_hours: Number(form.duration_hours), quality_score: Number(form.quality_score) });
     setNotice("Sleep saved. ZenFit can now tune today around your recovery.");
     await loadLogs();
   }
@@ -91,10 +92,10 @@ export default function SleepPage() {
           <h2 className="mt-4 text-2xl font-semibold">Log last night</h2>
           <p className="mt-2 text-sm text-muted">Approximate is enough. The goal is better guidance, not perfect tracking.</p>
           <form className="mt-5 grid gap-3" onSubmit={handleSubmit}>
-            <Input type="date" max={todayIsoDate()} value={form.sleep_date} onChange={(event) => setForm({ ...form, sleep_date: event.target.value })} />
-            <Input type="number" step="0.25" value={form.duration_hours} onChange={(event) => setForm({ ...form, duration_hours: Number(event.target.value) })} placeholder="Hours slept" />
-            <Input type="number" value={form.quality_score} onChange={(event) => setForm({ ...form, quality_score: Number(event.target.value) })} placeholder="Quality 1-100" />
-            <Input placeholder="What affected sleep?" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
+            <Field label="Sleep date"><Input type="date" max={todayIsoDate()} value={form.sleep_date} onChange={(event) => setForm({ ...form, sleep_date: event.target.value })} /></Field>
+            <Field label="Hours slept" helper="An estimate is enough."><Input inputMode="decimal" value={form.duration_hours} onChange={(event) => /^\d*(?:\.\d*)?$/.test(event.target.value) && setForm({ ...form, duration_hours: event.target.value })} /></Field>
+            <Field label="Sleep quality" helper="Use a number from 1 to 100."><Input inputMode="numeric" value={form.quality_score} onChange={(event) => /^\d*$/.test(event.target.value) && setForm({ ...form, quality_score: event.target.value })} /></Field>
+            <Field label="Anything that affected sleep?" helper="Optional"><Input value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></Field>
             <Button>
               <Sunrise className="h-4 w-4" />
               Save sleep

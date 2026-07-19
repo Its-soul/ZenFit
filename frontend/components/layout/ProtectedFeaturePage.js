@@ -1,7 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { GlassPanel } from "@/components/common/GlassPanel";
+import { SurfacePanel } from "@/components/common/SurfacePanel";
 import { useAuth } from "@/hooks/useAuth";
 
 export function ProtectedFeaturePage({ title, description, children }) {
@@ -17,11 +17,11 @@ export function ProtectedFeaturePage({ title, description, children }) {
 
   return (
     <AppShell user={user} onLogout={logout}>
-      <GlassPanel className="min-w-0 p-[clamp(1rem,3vw,1.5rem)]">
+      <SurfacePanel className="min-w-0 p-[clamp(1rem,3vw,1.5rem)]">
         <h1 className="break-words text-[clamp(1.75rem,5vw,2rem)] font-semibold">{title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{description}</p>
         <div className="mt-6">{children}</div>
-      </GlassPanel>
+      </SurfacePanel>
     </AppShell>
   );
 }

@@ -36,7 +36,7 @@ export function CoachInterventionCard({ momentum, reply, input, loading, onInput
           <button
             key={prompt}
             onClick={() => onAsk(prompt)}
-            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-200 transition hover:border-zenSage hover:text-white"
+            className="min-h-10 rounded-full border border-white/10 px-3 py-1.5 text-sm text-slate-200 outline-none transition-[border-color,color,background-color] hover:border-zenSage hover:text-white focus-visible:ring-2 focus-visible:ring-zenSage"
           >
             {prompt}
           </button>
