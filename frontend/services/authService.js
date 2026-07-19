@@ -1,6 +1,8 @@
 import apiClient from "./apiClient";
 import { clearAuthSession, getAccessToken, saveAuthSession } from "@/lib/authStorage";
 
+let meRequest = null;
+
 export async function register(payload) {
   const response = await apiClient.post("/auth/register", payload);
   saveAuthSession(response.data.access_token, response.data.refresh_token, response.data.user);
@@ -14,8 +16,12 @@ export async function login(payload) {
 }
 
 export async function getMe() {
-  const response = await apiClient.get("/auth/me");
-  return response.data;
+  if (!meRequest) {
+    meRequest = apiClient.get("/auth/me").then((response) => response.data).finally(() => {
+      meRequest = null;
+    });
+  }
+  return meRequest;
 }
 
 export async function logout() {

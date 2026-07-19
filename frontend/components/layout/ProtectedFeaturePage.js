@@ -17,8 +17,8 @@ export function ProtectedFeaturePage({ title, description, children }) {
 
   return (
     <AppShell user={user} onLogout={logout}>
-      <GlassPanel className="p-6">
-        <h1 className="text-3xl font-semibold">{title}</h1>
+      <GlassPanel className="min-w-0 p-[clamp(1rem,3vw,1.5rem)]">
+        <h1 className="break-words text-[clamp(1.75rem,5vw,2rem)] font-semibold">{title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{description}</p>
         <div className="mt-6">{children}</div>
       </GlassPanel>

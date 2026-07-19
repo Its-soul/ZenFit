@@ -7,7 +7,7 @@ export function Button({ children, className = "", variant = "primary", ...props
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold outline-none transition-[background-color,border-color,color,opacity,transform] focus-visible:ring-2 focus-visible:ring-zenSage focus-visible:ring-offset-2 focus-visible:ring-offset-[#101610] disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

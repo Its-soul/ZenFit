@@ -19,7 +19,7 @@ function nutritionStory(nutrition) {
   return "Start with a meal photo. Good enough logging beats perfect tracking.";
 }
 
-const emptyMealForm = { name: "", meal_type: "meal", calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+const emptyMealForm = { name: "", meal_type: "meal", calories: "0", protein_g: "0", carbs_g: "0", fat_g: "0" };
 
 export default function NutritionPage() {
   const [nutrition, setNutrition] = useState(null);
@@ -38,7 +38,13 @@ export default function NutritionPage() {
   }, []);
 
   async function saveMeal(payload = form) {
-    await createMeal(payload);
+    await createMeal({
+      ...payload,
+      calories: Number(payload.calories),
+      protein_g: Number(payload.protein_g),
+      carbs_g: Number(payload.carbs_g),
+      fat_g: Number(payload.fat_g)
+    });
     setForm(emptyMealForm);
     setManualOpen(false);
     setNotice("Meal saved. This helps ZenFit guide the rest of your day.");
@@ -51,7 +57,13 @@ export default function NutritionPage() {
     setLookupLoading(true);
     try {
       const response = await lookupMeal(lookupQuery);
-      setForm(response.estimate);
+      setForm({
+        ...response.estimate,
+        calories: String(response.estimate.calories),
+        protein_g: String(response.estimate.protein_g),
+        carbs_g: String(response.estimate.carbs_g),
+        fat_g: String(response.estimate.fat_g)
+      });
       setManualOpen(true);
       setNotice("Review the USDA-backed lookup, make any quick edits, then save.");
     } finally {
@@ -118,10 +130,10 @@ export default function NutritionPage() {
           >
             <Input placeholder="Meal name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             <Input value={form.meal_type} onChange={(event) => setForm({ ...form, meal_type: event.target.value })} />
-            <Input type="number" value={form.calories} onChange={(event) => setForm({ ...form, calories: Number(event.target.value) })} />
-            <Input type="number" value={form.protein_g} onChange={(event) => setForm({ ...form, protein_g: Number(event.target.value) })} />
-            <Input type="number" value={form.carbs_g} onChange={(event) => setForm({ ...form, carbs_g: Number(event.target.value) })} />
-            <Input type="number" value={form.fat_g} onChange={(event) => setForm({ ...form, fat_g: Number(event.target.value) })} />
+            <Input aria-label="Calories" inputMode="numeric" value={form.calories} onChange={(event) => /^\d*$/.test(event.target.value) && setForm({ ...form, calories: event.target.value })} />
+            <Input aria-label="Protein grams" inputMode="decimal" value={form.protein_g} onChange={(event) => /^\d*(?:\.\d*)?$/.test(event.target.value) && setForm({ ...form, protein_g: event.target.value })} />
+            <Input aria-label="Carbohydrate grams" inputMode="decimal" value={form.carbs_g} onChange={(event) => /^\d*(?:\.\d*)?$/.test(event.target.value) && setForm({ ...form, carbs_g: event.target.value })} />
+            <Input aria-label="Fat grams" inputMode="decimal" value={form.fat_g} onChange={(event) => /^\d*(?:\.\d*)?$/.test(event.target.value) && setForm({ ...form, fat_g: event.target.value })} />
             <Button>Add meal</Button>
           </form>
         ) : null}
