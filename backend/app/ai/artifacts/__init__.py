@@ -44,7 +44,7 @@ class S3CompatibleArtifactStorage:
 
 
 def package_artifact(candidate: Path, destination: Path, *, environment: str) -> Path:
-    if environment not in {"development","production"}:raise ValueError("environment must be development or production")
+    if environment not in {"developer-beta","development","production"}:raise ValueError("environment must be developer-beta, development, or production")
     if environment == "production":
         gate_path=candidate/"promotion_gates.json"
         if not gate_path.is_file():raise ValueError("production packaging requires promotion-gate evidence")

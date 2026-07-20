@@ -27,11 +27,13 @@ def evaluate_gates(root:Path, gate_config:Path=DEFAULT_GATE_CONFIG):
     return gates
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument("version");p.add_argument("--environment",choices=("development","production"),default="production");p.add_argument("--models-dir",type=Path,default=Path("../data/models/indian_food"));p.add_argument("--gate-config",type=Path,default=DEFAULT_GATE_CONFIG);args=p.parse_args();root=args.models_dir/args.version
+    p=argparse.ArgumentParser();p.add_argument("version");p.add_argument("--environment",choices=("developer-beta","development","production"),default="production");p.add_argument("--models-dir",type=Path,default=Path("../data/models/indian_food"));p.add_argument("--gate-config",type=Path,default=DEFAULT_GATE_CONFIG);args=p.parse_args();root=args.models_dir/args.version
     gates=evaluate_gates(root,args.gate_config)
     (root/"promotion_gates.json").write_text(json.dumps(gates,indent=2)) if root.exists() else None
     for name,value in gates.items():print(f"{name}: {value['status']} - {value['reason']}")
-    required=GATES if args.environment=="production" else ("dataset_gate","metric_gate","calibration_gate","latency_gate","unknown_food_gate","non_food_gate","open_set_evidence_size_gate")
+    required=GATES if args.environment=="production" else ("dataset_gate","license_gate","metric_gate","calibration_gate","latency_gate","regression_gate")
     if not all(gates[name]["status"]=="PASS" for name in required):raise SystemExit(f"{args.environment.upper()} PROMOTION BLOCKED")
-    pointer="active.json" if args.environment=="production" else "development.json";(args.models_dir/pointer).write_text(json.dumps({"version":args.version},indent=2));print(f"Promoted {args.version} for {args.environment}")
+    pointer="active.json" if args.environment=="production" else "developer_beta.json"
+    metadata={"version":args.version,"status":"PRODUCTION_APPROVED" if args.environment=="production" else "DEVELOPER_BETA","manual_correction_required":args.environment!="production","confidence_required":True,"top_k_required":True}
+    (args.models_dir/pointer).write_text(json.dumps(metadata,indent=2));print(f"Promoted {args.version} for {args.environment}")
 if __name__=="__main__":main()

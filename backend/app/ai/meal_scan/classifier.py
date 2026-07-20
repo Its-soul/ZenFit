@@ -4,7 +4,8 @@ from app.ai.config import get_ai_settings
 
 def _active_artifacts(settings):
     model_root=settings.indian_food_model_path.parent/"indian_food";active=model_root/"active.json"
-    if settings.app_env != "production" and (model_root/"development.json").exists():active=model_root/"development.json"
+    if settings.app_env != "production" and (model_root/"developer_beta.json").exists():active=model_root/"developer_beta.json"
+    elif settings.app_env != "production" and (model_root/"development.json").exists():active=model_root/"development.json"
     if active.exists():
         manifest=json.loads(active.read_text());root=active.parent/manifest["version"]
         weights=root/"model.pt" if (root/"model.pt").exists() else root/"indian_food.pt";classes=root/"classes.json" if (root/"classes.json").exists() else root/"indian_food_classes.json";metadata=root/"config.json" if (root/"config.json").exists() else root/"indian_food_model.json"

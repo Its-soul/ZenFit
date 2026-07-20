@@ -3,7 +3,7 @@ from pathlib import Path
 from app.ai.registry import registry
 
 def main():
-    root=Path("../data/models/indian_food");active=root/"active.json";dev=root/"development.json"
+    root=Path("../data/models/indian_food");active=root/"active.json";dev=root/"developer_beta.json"
     core=all(registry.status()[k] for k in ("bge_embeddings","bge_reranker"))
     development=dev.exists() or active.exists();production=False;reasons=[]
     if active.exists():
