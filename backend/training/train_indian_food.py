@@ -45,6 +45,25 @@ def parse_args():
     return p.parse_args()
 
 
+def build_classifier_model(architecture: str, class_count: int, *, pretrained: bool):
+    if architecture != "efficientnet_b0":
+        raise ValueError(f"Unsupported classifier architecture: {architecture}")
+    from torch import nn
+    from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
+
+    model = efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT if pretrained else None)
+    model.classifier[1] = nn.Linear(model.classifier[1].in_features, class_count)
+    return model
+
+
+def build_evaluation_transform(config: dict):
+    if config.get("architecture") != "efficientnet_b0":
+        raise ValueError(f"Unsupported classifier architecture: {config.get('architecture')}")
+    from torchvision.models import EfficientNet_B0_Weights
+
+    return EfficientNet_B0_Weights.DEFAULT.transforms()
+
+
 def main():
     args = parse_args()
     output = args.models_dir / args.version
@@ -83,7 +102,7 @@ def main():
     aug = cfg.get("augmentation", {})
     normalize = transforms.Normalize([.485, .456, .406], [.229, .224, .225])
     train_transform = transforms.Compose([transforms.RandomResizedCrop(cfg["image_size"], scale=tuple(aug.get("random_resized_crop_scale", [.8, 1]))), transforms.RandomHorizontalFlip(aug.get("horizontal_flip_probability", .5)), transforms.RandomRotation(aug.get("rotation_degrees", 8)), transforms.ColorJitter(brightness=aug.get("brightness", .15), contrast=aug.get("contrast", .15), saturation=aug.get("saturation", .1)), transforms.ToTensor(), normalize])
-    eval_transform = EfficientNet_B0_Weights.DEFAULT.transforms()
+    eval_transform = build_evaluation_transform(cfg)
     train = ImageFolder(args.dataset / "train", train_transform)
     val = ImageFolder(args.dataset / "val", eval_transform)
     test = ImageFolder(args.dataset / "test", eval_transform)
@@ -101,8 +120,7 @@ def main():
     workers = cfg.get("num_workers", 2)
     loader = lambda ds, shuffle=False: DataLoader(ds, batch_size=cfg["batch_size"], shuffle=shuffle, num_workers=workers, pin_memory=device.type == "cuda", persistent_workers=workers > 0)
 
-    model = efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
-    model.classifier[1] = nn.Linear(model.classifier[1].in_features, len(train.classes))
+    model = build_classifier_model(cfg["architecture"], len(train.classes), pretrained=True)
     model.to(device)
     loss_fn = nn.CrossEntropyLoss(weight=weights if cfg["weighted_loss"] else None)
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
