@@ -1,0 +1,79 @@
+{
+  "brier_score": 0.14803437802484398,
+  "ece": 0.022472547804749235,
+  "reliability_bins": [
+    {
+      "lower": 0.0,
+      "upper": 0.1,
+      "count": 0,
+      "accuracy": null,
+      "confidence": null
+    },
+    {
+      "lower": 0.1,
+      "upper": 0.2,
+      "count": 0,
+      "accuracy": null,
+      "confidence": null
+    },
+    {
+      "lower": 0.2,
+      "upper": 0.30000000000000004,
+      "count": 4,
+      "accuracy": 0.25,
+      "confidence": 0.2707030773162842
+    },
+    {
+      "lower": 0.30000000000000004,
+      "upper": 0.4,
+      "count": 7,
+      "accuracy": 0.5714285714285714,
+      "confidence": 0.359220951795578
+    },
+    {
+      "lower": 0.4,
+      "upper": 0.5,
+      "count": 13,
+      "accuracy": 0.38461538461538464,
+      "confidence": 0.45440593361854553
+    },
+    {
+      "lower": 0.5,
+      "upper": 0.6000000000000001,
+      "count": 24,
+      "accuracy": 0.4166666666666667,
+      "confidence": 0.553117573261261
+    },
+    {
+      "lower": 0.6000000000000001,
+      "upper": 0.7000000000000001,
+      "count": 26,
+      "accuracy": 0.6923076923076923,
+      "confidence": 0.6618906855583191
+    },
+    {
+      "lower": 0.7000000000000001,
+      "upper": 0.8,
+      "count": 20,
+      "accuracy": 0.5,
+      "confidence": 0.7399027943611145
+    },
+    {
+      "lower": 0.8,
+      "upper": 0.9,
+      "count": 54,
+      "accuracy": 0.8518518518518519,
+      "confidence": 0.8567065000534058
+    },
+    {
+      "lower": 0.9,
+      "upper": 1.0,
+      "count": 448,
+      "accuracy": 0.9799107142857143,
+      "confidence": 0.9839112162590027
+    }
+  ],
+  "temperature": 1.055672287940979,
+  "fit_split": "validation",
+  "evaluation_split": "test"
+}

@@ -9,6 +9,9 @@ from app.ai.meal_scan.open_set import Candidate, OpenSetDecision, OpenSetDecisio
 from training.analyze_open_set_thresholds import recommend
 from training.open_set_evaluation import evaluate_rows, threshold_sweep
 from training.promote_indian_food import evaluate_gates
+from app.ai.meal_scan.artifact_loader import artifact_capability, materialize_verified_artifact
+from app.ai.service import ZenFitAIService
+from app.ai.meal_scan.classifier import calibrated_softmax
 
 
 def thresholds(**overrides):
@@ -52,6 +55,44 @@ def test_artifact_package_checksum_and_environment(tmp_path):
     with pytest.raises(ValueError,match="checksum"):verify_artifact(package)
     with pytest.raises(ValueError):verify_artifact(tmp_path/"missing")
     with pytest.raises(ValueError,match="promotion-gate"):package_artifact(candidate,tmp_path/"production",environment="production")
+
+
+def test_local_developer_beta_artifact_selection_and_corruption(tmp_path):
+    candidate=tmp_path/"1.2.0-colab-candidate";_fake_candidate(candidate);storage=tmp_path/"storage";package=storage/"meal-classifier"/"1.2.0-colab-candidate"
+    package_artifact(candidate,package,environment="developer-beta")
+    settings=type("Settings",(),{"meal_classifier_enabled":True,"meal_classifier_version":"1.2.0-colab-candidate","meal_classifier_environment":"developer-beta","meal_classifier_artifact_prefix":"meal-classifier","artifact_storage_backend":"local","artifact_local_dir":storage,"model_cache_dir":tmp_path/"cache"})()
+    root,manifest=materialize_verified_artifact(settings)
+    assert root==package and manifest["model_version"]=="1.2.0-colab-candidate"
+    assert artifact_capability(settings)["available"] is True
+    (package/"model.pt").write_bytes(b"corrupt")
+    assert artifact_capability(settings)["available"] is False
+
+
+def test_missing_developer_beta_artifact_is_unavailable(tmp_path):
+    settings=type("Settings",(),{"meal_classifier_enabled":True,"meal_classifier_version":"missing","meal_classifier_environment":"developer-beta","meal_classifier_artifact_prefix":"meal-classifier","artifact_storage_backend":"local","artifact_local_dir":tmp_path,"model_cache_dir":tmp_path/"cache"})()
+    capability=artifact_capability(settings)
+    assert capability["enabled"] is True and capability["available"] is False
+
+
+def test_health_exposes_safe_developer_beta_capability(monkeypatch):
+    raw={"heavy_models_enabled":False,"bge_embeddings":False,"bge_reranker":False,"adherence_model":False,"readiness_model":False,"recommendation_model":False,"foodsam":False,"foodseg103":False,"indian_food_classifier":True,"usda_configured":False,"mediapipe":False}
+    monkeypatch.setattr("app.ai.service.registry.status",lambda:raw)
+    monkeypatch.setattr("app.ai.service.qdrant_health",lambda:False)
+    monkeypatch.setattr("app.ai.service.artifact_capability",lambda settings:{"enabled":True,"available":True,"model_version":"1.2.0-colab-candidate","environment":"developer-beta","reason":None})
+    result=ZenFitAIService().health()["meal_scan"]
+    assert result["overall"]=="ready"
+    assert result["meal_classifier"]=={"enabled":True,"available":True,"model_version":"1.2.0-colab-candidate","environment":"developer-beta","reason":None}
+
+
+def test_calibrated_softmax_applies_temperature_before_softmax():
+    class FakeLogits:
+        temperature=None;dimension=None
+        def __truediv__(self,value):self.temperature=value;return self
+        def softmax(self,dim):self.dimension=dim;return self
+    logits=FakeLogits()
+    assert calibrated_softmax(logits,1.0556710958480835) is logits
+    assert logits.temperature==1.0556710958480835 and logits.dimension==1
+    with pytest.raises(ValueError):calibrated_softmax(logits,0)
 
 
 def test_open_set_metrics_and_threshold_analysis_use_stored_evidence_only():

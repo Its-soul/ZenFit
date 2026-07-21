@@ -116,7 +116,7 @@ def test_text_lookup_calculates_usda_macros():
 def test_local_meal_scan_returns_manual_fallback_when_heavy_models_disabled(monkeypatch):
     monkeypatch.setattr(
         "app.ai.meal_scan.pipeline.get_ai_settings",
-        lambda: SimpleNamespace(heavy_models_enabled=False),
+        lambda: SimpleNamespace(heavy_models_enabled=False, meal_classifier_enabled=False),
     )
     image = Image.new("RGB", (16, 16), color="white")
     content = io.BytesIO()
@@ -127,7 +127,18 @@ def test_local_meal_scan_returns_manual_fallback_when_heavy_models_disabled(monk
     assert result.recognition_decision.value == "MODEL_UNAVAILABLE"
     assert result.foods == []
     assert "manually" in result.recognition_message.lower()
-    assert result.recognition_reason_codes == ["heavy_models_disabled"]
+    assert result.recognition_reason_codes == ["meal_classifier_disabled"]
+
+
+def test_local_meal_scan_returns_manual_fallback_when_classifier_load_fails(monkeypatch):
+    monkeypatch.setattr("app.ai.meal_scan.pipeline.get_ai_settings", lambda: SimpleNamespace(heavy_models_enabled=False, meal_classifier_enabled=True))
+    monkeypatch.setattr("app.ai.meal_scan.pipeline.classify", lambda image: None)
+    image = Image.new("RGB", (16, 16), color="white")
+    content = io.BytesIO(); image.save(content, format="PNG")
+    result = asyncio.run(MealScanPipeline().analyze(content.getvalue()))
+    assert result.recognition_decision.value == "MODEL_UNAVAILABLE"
+    assert result.foods == []
+    assert "manually" in result.recognition_message.lower()
 
 
 def test_today_targets_come_from_user_profile():

@@ -39,6 +39,10 @@ class MealAnalysis(BaseModel):
     recognition_message: str = "AI meal recognition is currently unavailable. You can still log your meal manually."
     recognition_reason_codes: list[str] = Field(default_factory=list)
     top_candidates: list[dict] = Field(default_factory=list)
+    predicted_class: str | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    model_version: str | None = None
+    model_environment: str | None = None
 
 
 class ConfirmedFood(BaseModel):

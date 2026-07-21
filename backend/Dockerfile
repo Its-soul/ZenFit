@@ -11,12 +11,17 @@ RUN apt-get update \
 
 COPY requirements.txt .
 COPY requirements-ai.txt .
+COPY requirements-classifier.txt .
 ARG INSTALL_AI=false
+ARG INSTALL_MEAL_CLASSIFIER=false
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt \
-    && if [ "$INSTALL_AI" = "true" ]; then \
+    && if [ "$INSTALL_AI" = "true" ] || [ "$INSTALL_MEAL_CLASSIFIER" = "true" ]; then \
          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.7.1 torchvision==0.22.1 \
-         && pip install -r requirements-ai.txt; \
+         && pip install -r requirements-classifier.txt; \
+       fi \
+    && if [ "$INSTALL_AI" = "true" ]; then \
+         pip install -r requirements-ai.txt; \
        fi
 
 COPY . .

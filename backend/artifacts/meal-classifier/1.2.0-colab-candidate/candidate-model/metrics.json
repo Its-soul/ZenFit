@@ -1,0 +1,217 @@
+{
+  "sample_count": 596,
+  "accuracy": 0.8942953020134228,
+  "balanced_accuracy": 0.8971449185734901,
+  "macro_precision": 0.9011858611344594,
+  "macro_recall": 0.8971449185734901,
+  "macro_f1": 0.8970271784142188,
+  "weighted_precision": 0.8981702204658668,
+  "weighted_recall": 0.8942953020134228,
+  "weighted_f1": 0.8940720104877263,
+  "top_3_accuracy": 0.9832214765100671,
+  "per_class": {
+    "chapati": {
+      "precision": 0.8372093023255814,
+      "recall": 0.8,
+      "f1-score": 0.8181818181818182,
+      "support": 45.0
+    },
+    "chicken_curry": {
+      "precision": 0.8571428571428571,
+      "recall": 0.8,
+      "f1-score": 0.8275862068965517,
+      "support": 45.0
+    },
+    "chole_bhature": {
+      "precision": 0.8958333333333334,
+      "recall": 0.9555555555555556,
+      "f1-score": 0.9247311827956989,
+      "support": 45.0
+    },
+    "dal_makhani": {
+      "precision": 0.7636363636363637,
+      "recall": 1.0,
+      "f1-score": 0.865979381443299,
+      "support": 42.0
+    },
+    "dhokla": {
+      "precision": 0.9705882352941176,
+      "recall": 0.9428571428571428,
+      "f1-score": 0.9565217391304348,
+      "support": 35.0
+    },
+    "dosa": {
+      "precision": 0.975,
+      "recall": 0.975,
+      "f1-score": 0.975,
+      "support": 40.0
+    },
+    "fried_rice": {
+      "precision": 0.8775510204081632,
+      "recall": 0.9555555555555556,
+      "f1-score": 0.9148936170212766,
+      "support": 45.0
+    },
+    "idli": {
+      "precision": 0.9555555555555556,
+      "recall": 0.9772727272727273,
+      "f1-score": 0.9662921348314607,
+      "support": 44.0
+    },
+    "jalebi": {
+      "precision": 1.0,
+      "recall": 0.975,
+      "f1-score": 0.9873417721518988,
+      "support": 40.0
+    },
+    "kadai_paneer": {
+      "precision": 0.9736842105263158,
+      "recall": 0.8222222222222222,
+      "f1-score": 0.891566265060241,
+      "support": 45.0
+    },
+    "naan": {
+      "precision": 0.8043478260869565,
+      "recall": 0.8222222222222222,
+      "f1-score": 0.8131868131868132,
+      "support": 45.0
+    },
+    "omelette": {
+      "precision": 0.8604651162790697,
+      "recall": 0.8222222222222222,
+      "f1-score": 0.8409090909090909,
+      "support": 45.0
+    },
+    "pav_bhaji": {
+      "precision": 0.875,
+      "recall": 0.7954545454545454,
+      "f1-score": 0.8333333333333334,
+      "support": 44.0
+    },
+    "samosa": {
+      "precision": 0.9705882352941176,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.9428571428571428,
+      "support": 36.0
+    }
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "stage": "head",
+      "learning_rate": 0.001,
+      "training_loss": 1.7984578944051053,
+      "training_accuracy": 0.57408081543502,
+      "validation_loss": 1.2577944835298298,
+      "validation_accuracy": 0.7474402730375427
+    },
+    {
+      "epoch": 2,
+      "stage": "head",
+      "learning_rate": 0.001,
+      "training_loss": 1.012448709315719,
+      "training_accuracy": 0.7717510010921005,
+      "validation_loss": 0.9498147811905923,
+      "validation_accuracy": 0.7696245733788396
+    },
+    {
+      "epoch": 3,
+      "stage": "head",
+      "learning_rate": 0.001,
+      "training_loss": 0.8046556594895153,
+      "training_accuracy": 0.8016017473607572,
+      "validation_loss": 0.8271187159388546,
+      "validation_accuracy": 0.7764505119453925
+    },
+    {
+      "epoch": 4,
+      "stage": "head",
+      "learning_rate": 0.001,
+      "training_loss": 0.6715836332718329,
+      "training_accuracy": 0.8256279577721151,
+      "validation_loss": 0.7558638382283493,
+      "validation_accuracy": 0.7815699658703071
+    },
+    {
+      "epoch": 5,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.47122072421684236,
+      "training_accuracy": 0.8656716417910447,
+      "validation_loss": 0.4453706518578448,
+      "validation_accuracy": 0.8686006825938567
+    },
+    {
+      "epoch": 6,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.2898482183109078,
+      "training_accuracy": 0.9133600291226793,
+      "validation_loss": 0.35817812662889525,
+      "validation_accuracy": 0.909556313993174
+    },
+    {
+      "epoch": 7,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.21406020979730267,
+      "training_accuracy": 0.9402985074626866,
+      "validation_loss": 0.32818467691286435,
+      "validation_accuracy": 0.9146757679180887
+    },
+    {
+      "epoch": 8,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.1551073318205619,
+      "training_accuracy": 0.9603203494721514,
+      "validation_loss": 0.30422870738514457,
+      "validation_accuracy": 0.9215017064846417
+    },
+    {
+      "epoch": 9,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.12644434278179265,
+      "training_accuracy": 0.9661448853294503,
+      "validation_loss": 0.28923829220260777,
+      "validation_accuracy": 0.9283276450511946
+    },
+    {
+      "epoch": 10,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.1074106370318921,
+      "training_accuracy": 0.9763378230797234,
+      "validation_loss": 0.2863886846108648,
+      "validation_accuracy": 0.9283276450511946
+    },
+    {
+      "epoch": 11,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.08213593866398085,
+      "training_accuracy": 0.9781579905351292,
+      "validation_loss": 0.28215938826876696,
+      "validation_accuracy": 0.9283276450511946
+    },
+    {
+      "epoch": 12,
+      "stage": "finetune",
+      "learning_rate": 8e-05,
+      "training_loss": 0.0693810747500372,
+      "training_accuracy": 0.983618492901347,
+      "validation_loss": 0.28336844542429307,
+      "validation_accuracy": 0.9283276450511946
+    }
+  ],
+  "best_epoch": 11,
+  "best_validation_loss": 0.28215938826876696,
+  "best_validation_accuracy": 0.9283276450511946,
+  "checkpoint": "model.pt",
+  "device": "cuda",
+  "peak_cuda_memory_bytes": 1162980352,
+  "non_food_gate": false,
+  "latency_gate": false,
+  "regression_gate": false
+}

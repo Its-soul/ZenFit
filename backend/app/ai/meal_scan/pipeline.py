@@ -19,16 +19,6 @@ MESSAGES = {
     OpenSetDecision.MODEL_UNAVAILABLE: "AI meal recognition is currently unavailable. You can still log your meal manually.",
 }
 
-def _release_thresholds(model_version:str|None)->OpenSetThresholds:
-    settings=get_ai_settings()
-    path=settings.indian_food_model_path.parent/"indian_food"/(model_version or "")/"open_set_thresholds.json"
-    if path.is_file():
-        configured=OpenSetThresholds.from_json(path)
-        if settings.app_env=="production" and configured.status!="approved":
-            raise RuntimeError("production open-set thresholds are not approved")
-        return configured
-    return OpenSetThresholds(model_version=model_version or "unavailable")
-
 class MealScanPipeline:
     def __init__(self, food_detector=None, thresholds=None):
         self.foodsam,self.foodseg,self.usda=FoodSAMAdapter(),FoodSegAdapter(),USDANutritionClient()
@@ -58,13 +48,17 @@ class MealScanPipeline:
         return list(merged.values())
     async def analyze(self,content:bytes)->MealAnalysis:
         image=self.decode(content)
-        if not get_ai_settings().heavy_models_enabled:
-            return MealAnalysis(analysis_id=str(uuid.uuid4()),foods=[],nutrition={key:0.0 for key in ("calories","protein_g","carbs_g","fat_g","fiber_g")},warnings=[MESSAGES[OpenSetDecision.MODEL_UNAVAILABLE]],recognition_decision=OpenSetDecision.MODEL_UNAVAILABLE,recognition_message=MESSAGES[OpenSetDecision.MODEL_UNAVAILABLE],recognition_reason_codes=["heavy_models_disabled"])
-        sam=self.foodsam.segment(image);seg=self.foodseg.segment(image);evidence=self._classify_regions(image,sam.get("regions",[]));warnings=[]
+        settings=get_ai_settings()
+        if not settings.meal_classifier_enabled:
+            return MealAnalysis(analysis_id=str(uuid.uuid4()),foods=[],nutrition={key:0.0 for key in ("calories","protein_g","carbs_g","fat_g","fiber_g")},warnings=[MESSAGES[OpenSetDecision.MODEL_UNAVAILABLE]],recognition_decision=OpenSetDecision.MODEL_UNAVAILABLE,recognition_message=MESSAGES[OpenSetDecision.MODEL_UNAVAILABLE],recognition_reason_codes=["meal_classifier_disabled"])
+        sam=self.foodsam.segment(image) if settings.heavy_models_enabled else {"available":False,"regions":[]}
+        seg=self.foodseg.segment(image) if settings.heavy_models_enabled else {"available":False,"ingredients":[]}
+        evidence=self._classify_regions(image,sam.get("regions",[]));warnings=[]
         detector_result=self.food_detector.predict(image) if self.food_detector.is_available() else None
         best=max(evidence,key=lambda item:item.get("top1_confidence",0),default=None)
         version=best.get("model_version") if best else None
-        thresholds=self.thresholds or _release_thresholds(version)
+        threshold_values=(best or {}).get("open_set_thresholds")
+        thresholds=self.thresholds or (OpenSetThresholds(**threshold_values) if threshold_values else OpenSetThresholds(model_version=version or "unavailable"))
         decision=OpenSetDecisionEngine(thresholds).decide(OpenSetInput(top_candidates=tuple(Candidate(item["label"],item["confidence"]) for item in (best or {}).get("top_candidates",[])),entropy=(best or {}).get("entropy"),food_probability=detector_result.food_probability if detector_result else None,model_version=version,model_available=best is not None))
         accepted=evidence if decision.decision is OpenSetDecision.SUPPORTED_FOOD else []
         detections=self._merge([item|{"label":item["top_candidates"][0]["label"],"confidence":item["top1_confidence"]} for item in accepted]);warnings=[]
@@ -77,4 +71,4 @@ class MealScanPipeline:
             portion=estimate_portion(label,quantity=count);nutrition=await self.usda.lookup(label,portion["estimated_grams"]) or {};food_conf=detection["confidence"];level="high" if food_conf>=.8 else "medium" if food_conf>=.55 else "low"
             foods.append(FoodCandidate(name=label,quantity=count,estimated_grams=portion["estimated_grams"],confidence=food_conf,nutrition=nutrition,usda_food_id=nutrition.get("usda_food_id"),matched_description=nutrition.get("matched_description"),food_confidence=food_conf,quantity_confidence=quantity_conf,portion_confidence=portion["confidence"],nutrition_match_confidence=nutrition.get("match_confidence",0),confidence_level=level,top_candidates=detection["top_candidates"],bounding_box=detection["items"][0].get("bounding_box"),model_version=detection.get("model_version")))
         totals={key:round(sum(f.nutrition.get(key,0) for f in foods),1) for key in ("calories","protein_g","carbs_g","fat_g","fiber_g")}
-        return MealAnalysis(analysis_id=str(uuid.uuid4()),foods=foods,nutrition=totals,warnings=warnings,recognition_decision=decision.decision,recognition_message=MESSAGES[decision.decision],recognition_reason_codes=list(decision.reason_codes),top_candidates=[{"label":item.label,"confidence":item.confidence} for item in decision.top_candidates])
+        return MealAnalysis(analysis_id=str(uuid.uuid4()),foods=foods,nutrition=totals,warnings=warnings,recognition_decision=decision.decision,recognition_message=MESSAGES[decision.decision],recognition_reason_codes=list(decision.reason_codes),top_candidates=[{"label":item.label,"confidence":item.confidence} for item in decision.top_candidates],predicted_class=decision.top_candidates[0].label if decision.top_candidates else None,confidence=decision.confidence,model_version=version,model_environment=(best or {}).get("model_environment"))

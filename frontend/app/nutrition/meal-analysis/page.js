@@ -45,13 +45,15 @@ export default function MealAnalysisPage() {
     getAiHealth().then((result) => {
       if (!active) return;
       const next = result?.meal_scan?.overall || "unavailable";
+      const metadata = result?.meal_scan?.meal_classifier || null;
       setCapability(next);
-      if (next === "unavailable") setStatusNotice("Automatic recognition is temporarily unavailable. You can still upload a photo and log this meal manually.");
+      if (next === "unavailable") setStatusNotice("Automatic recognition is temporarily unavailable. You can still log this meal manually.");
+      else if (metadata?.environment === "developer-beta") setStatusNotice(`Automatic recognition is available in developer beta${metadata.model_version ? ` (${metadata.model_version})` : ""}. Review every result before saving.`);
       else if (next === "partial") setStatusNotice("Automatic recognition is limited. Review every detected food and portion before saving.");
     }).catch(() => {
       if (!active) return;
       setCapability("unavailable");
-      setStatusNotice("Automatic recognition is temporarily unavailable. You can still upload a photo and log this meal manually.");
+      setStatusNotice("Automatic recognition is temporarily unavailable. You can still log this meal manually.");
     });
     return () => { active = false; };
   }, []);
@@ -87,6 +89,16 @@ export default function MealAnalysisPage() {
   function edit(index, key, value) {
     if (key !== "name" && !/^\d*(?:\.\d*)?$/.test(value)) return;
     setFoods((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item));
+    setManualEstimate(null);
+    setSaved(false);
+  }
+
+  function applySuggestion(label) {
+    setFoods((items) => {
+      const next = items.length ? [...items] : [blankFood()];
+      next[0] = { ...next[0], name: label };
+      return next;
+    });
     setManualEstimate(null);
     setSaved(false);
   }
@@ -147,20 +159,21 @@ export default function MealAnalysisPage() {
   return (
     <ProtectedFeaturePage title="Meal analysis" description="Upload a meal photo, review every estimate, and correct portions before saving.">
       {statusNotice ? <div role="status" className={`status-banner mb-5 ${capability === "unavailable" ? "status-banner--warning" : "status-banner--info"}`}>{statusNotice}</div> : null}
-      <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <section className="panel min-w-0 rounded-2xl p-[clamp(1rem,3vw,1.25rem)]">
+      <div className={`grid min-w-0 gap-5 ${capability === "unavailable" ? "" : "xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]"}`}>
+        {capability !== "unavailable" ? <section className="panel min-w-0 rounded-2xl p-[clamp(1rem,3vw,1.25rem)]">
           <div className="flex items-center gap-2"><Camera className="h-5 w-5 text-zenSage" /><h2 className="font-semibold">Meal photo</h2></div>
           <label className="mt-4 flex min-h-52 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-black/20 outline-none focus-within:border-zenSage focus-within:ring-2 focus-within:ring-zenSage/20 sm:min-h-64">
             {preview ? <Image unoptimized width={800} height={600} src={preview} alt="Uploaded meal preview" className="max-h-80 w-full object-contain" /> : <span className="flex flex-col items-center gap-2 px-4 text-center text-sm text-muted"><ImageUp />Choose or capture a JPEG, PNG, or WebP image</span>}
             <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={choose} />
           </label>
           <Button type="button" className="mt-4 w-full" disabled={scanDisabled} onClick={analyze} aria-describedby={capability === "unavailable" ? "scan-unavailable" : undefined}>{stage === "Analyzing meal..." ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}{capability === "checking" ? "Checking availability..." : capability === "unavailable" ? "Analyze meal unavailable" : stage === "Analyzing meal..." ? stage : "Analyze meal"}</Button>
-          {capability === "unavailable" ? <p id="scan-unavailable" className="mt-2 text-xs leading-5 text-muted">Add foods manually in the review panel. No image-analysis request will be sent.</p> : null}
-        </section>
+        </section> : null}
 
         <section className="panel min-w-0 rounded-2xl p-[clamp(1rem,3vw,1.25rem)]">
           <h2 className="font-semibold">Review foods</h2><p className="mt-1 text-sm leading-6 text-muted">Enter each food, its quantity or pieces, and the total gram amount.</p>
           {analysis?.recognition_message && analysis.recognition_decision !== "MODEL_UNAVAILABLE" ? <p className="mt-3 rounded-xl bg-white/5 p-3 text-sm text-muted">{analysis.recognition_message}</p> : null}
+          {analysis?.predicted_class ? <p className="mt-3 text-sm">Prediction: <span className="font-medium text-white">{analysis.predicted_class}</span>{Number.isFinite(analysis.confidence) ? ` · ${Math.round(analysis.confidence * 100)}% confidence` : ""}</p> : null}
+          {analysis?.top_candidates?.length ? <div className="mt-3 flex flex-wrap gap-2" aria-label="Alternative food suggestions">{analysis.top_candidates.map((candidate) => <button key={candidate.label} type="button" onClick={() => applySuggestion(candidate.label)} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-muted transition-colors hover:border-zenSage/50 hover:text-white">{candidate.label} · {Math.round(candidate.confidence * 100)}%</button>)}</div> : null}
           <div className="mt-4 space-y-3">{foods.map((food, index) => <ManualFoodRow key={index} food={food} index={index} onEdit={edit} onRemove={(itemIndex) => { setFoods((items) => items.filter((_, index) => index !== itemIndex)); setManualEstimate(null); }} />)}</div>
           <div className="mt-3 flex flex-wrap gap-2"><Button type="button" variant="secondary" onClick={() => { setFoods((items) => [...items, blankFood()]); setManualEstimate(null); }}><Plus className="h-4 w-4" />Add food</Button><Button type="button" variant="secondary" disabled={!foods.length || Boolean(stage)} onClick={updateTotals}>{stage === "Updating nutrition..." ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}{stage === "Updating nutrition..." ? stage : "Update nutrition totals"}</Button></div>
           <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-white/5 p-3 text-sm sm:grid-cols-3 xl:grid-cols-5"><span>{Math.round(totals.calories)} kcal</span><span>{Number(totals.protein_g).toFixed(1)}g protein</span><span>{Number(totals.carbs_g).toFixed(1)}g carbs</span><span>{Number(totals.fat_g).toFixed(1)}g fat</span><span>{Number(totals.fiber_g).toFixed(1)}g fiber</span></div>

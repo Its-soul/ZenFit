@@ -6,7 +6,7 @@ from pathlib import Path
 from app.ai.config import get_ai_settings
 
 logger = logging.getLogger(__name__)
-HEAVY_MODEL_KEYS={"bge_embeddings","bge_reranker","indian_food_classifier"}
+HEAVY_MODEL_KEYS={"bge_embeddings","bge_reranker"}
 
 
 class ModelRegistry:
@@ -20,6 +20,9 @@ class ModelRegistry:
     def _remember(self, key, loader):
         if key in HEAVY_MODEL_KEYS and not self.settings.heavy_models_enabled:
             self._errors[key] = "heavy models disabled by configuration"
+            return None
+        if key == "indian_food_classifier" and not self.settings.meal_classifier_enabled:
+            self._errors[key] = "meal classifier disabled by configuration"
             return None
         if key not in self._instances:
             try:
@@ -71,10 +74,9 @@ class ModelRegistry:
         return self._remember("indian_food_classifier", load_classifier)
 
     def food_classifier_version(self) -> str | None:
-        active=self.settings.indian_food_model_path.parent/"indian_food"/"active.json"
         try:
-            import json
-            return json.loads(active.read_text()).get("version") if active.exists() else ("legacy" if self.settings.indian_food_model_path.exists() else None)
+            from app.ai.meal_scan.artifact_loader import selected_version
+            return selected_version(self.settings)
         except Exception:return None
 
     def status(self) -> dict[str, bool]:
@@ -90,7 +92,7 @@ class ModelRegistry:
             "recommendation_model": self.settings.recommendation_model_path.exists(),
             "foodsam": self.settings.heavy_models_enabled and (self.settings.foodsam_model_dir/"zenfit_adapter.py").exists(),
             "foodseg103": self.settings.heavy_models_enabled and (self.settings.foodseg_model_dir/"zenfit_adapter.py").exists(),
-            "indian_food_classifier": self.settings.heavy_models_enabled and self.food_classifier_version() is not None,
+            "indian_food_classifier": self.settings.meal_classifier_enabled and self.food_classifier_version() is not None and self.error("indian_food_classifier") is None,
             "usda_configured": bool(self.settings.usda_api_key),
             "mediapipe": importlib.util.find_spec("mediapipe") is not None,
         }

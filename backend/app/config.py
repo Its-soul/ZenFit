@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+import re
 
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -49,6 +50,10 @@ class Settings(BaseSettings):
     shadow_mode: bool = Field(default=True, validation_alias="AI_SHADOW_MODE")
     heavy_models_enabled: bool = Field(default=False, validation_alias="AI_HEAVY_MODELS_ENABLED")
     prewarm_models: str = Field(default="false", validation_alias="AI_PREWARM_MODELS")
+    meal_classifier_enabled: bool = Field(default=False, validation_alias="AI_MEAL_CLASSIFIER_ENABLED")
+    meal_classifier_version: str | None = Field(default=None, validation_alias="AI_MEAL_CLASSIFIER_VERSION")
+    meal_classifier_environment: str = Field(default="developer-beta", validation_alias="AI_MEAL_CLASSIFIER_ENVIRONMENT")
+    meal_classifier_artifact_prefix: str = Field(default="meal-classifier", validation_alias="AI_MEAL_CLASSIFIER_ARTIFACT_PREFIX")
     artifact_storage_backend: str = Field(default="local", validation_alias="AI_ARTIFACT_STORAGE_BACKEND")
     artifact_local_dir: Path = Field(default=REPO_ROOT / "data" / "artifacts", validation_alias="AI_ARTIFACT_LOCAL_DIR")
     artifact_s3_bucket: str | None = Field(default=None, validation_alias="AI_ARTIFACT_S3_BUCKET")
@@ -80,6 +85,28 @@ class Settings(BaseSettings):
         ):
             raise ValueError("JWT_SECRET_KEY must be a unique secret with at least 32 characters")
         return value
+
+    @field_validator("meal_classifier_environment")
+    @classmethod
+    def validate_meal_classifier_environment(cls, value: str) -> str:
+        if value not in {"developer-beta", "production"}:
+            raise ValueError("AI_MEAL_CLASSIFIER_ENVIRONMENT must be developer-beta or production")
+        return value
+
+    @field_validator("meal_classifier_version")
+    @classmethod
+    def validate_meal_classifier_version(cls, value: str | None) -> str | None:
+        if value is not None and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", value):
+            raise ValueError("AI_MEAL_CLASSIFIER_VERSION contains unsupported characters")
+        return value
+
+    @field_validator("meal_classifier_artifact_prefix")
+    @classmethod
+    def validate_meal_classifier_artifact_prefix(cls, value: str) -> str:
+        stripped = value.strip("/")
+        if not stripped or ".." in stripped.split("/"):
+            raise ValueError("AI_MEAL_CLASSIFIER_ARTIFACT_PREFIX is invalid")
+        return stripped
 
     @field_validator(
         "model_cache_dir",
