@@ -98,6 +98,7 @@ def main():
         raise RuntimeError("CUDA is required for this run but is unavailable; stopped before training")
     if device.type == "cuda":
         torch.backends.cudnn.benchmark = True
+        torch.cuda.reset_peak_memory_stats()
 
     aug = cfg.get("augmentation", {})
     normalize = transforms.Normalize([.485, .456, .406], [.229, .224, .225])
@@ -176,7 +177,7 @@ def main():
     test_logits, truth = infer(test_run); probs = (test_logits / temp).softmax(1).numpy(); pred = probs.argmax(1)
     report = classification_report(truth, pred, labels=list(range(len(train.classes))), target_names=train.classes, output_dict=True, zero_division=0)
     matrix = confusion_matrix(truth, pred, labels=list(range(len(train.classes)))).tolist()
-    metrics = {"sample_count": len(test_run), "accuracy": accuracy_score(truth, pred), "balanced_accuracy": balanced_accuracy_score(truth, pred), "macro_precision": report["macro avg"]["precision"], "macro_recall": report["macro avg"]["recall"], "macro_f1": report["macro avg"]["f1-score"], "weighted_precision": report["weighted avg"]["precision"], "weighted_recall": report["weighted avg"]["recall"], "weighted_f1": report["weighted avg"]["f1-score"], "top_3_accuracy": top_k_accuracy_score(truth, probs, k=min(3, len(train.classes)), labels=list(range(len(train.classes)))), "per_class": {name: report[name] for name in train.classes}, "history": history, "best_epoch": best_epoch, "best_validation_loss": best_loss, "best_validation_accuracy": best_accuracy, "checkpoint": "model.pt", "device": str(device), "non_food_gate": False, "latency_gate": False, "regression_gate": False}
+    metrics = {"sample_count": len(test_run), "accuracy": accuracy_score(truth, pred), "balanced_accuracy": balanced_accuracy_score(truth, pred), "macro_precision": report["macro avg"]["precision"], "macro_recall": report["macro avg"]["recall"], "macro_f1": report["macro avg"]["f1-score"], "weighted_precision": report["weighted avg"]["precision"], "weighted_recall": report["weighted avg"]["recall"], "weighted_f1": report["weighted avg"]["f1-score"], "top_3_accuracy": top_k_accuracy_score(truth, probs, k=min(3, len(train.classes)), labels=list(range(len(train.classes)))), "per_class": {name: report[name] for name in train.classes}, "history": history, "best_epoch": best_epoch, "best_validation_loss": best_loss, "best_validation_accuracy": best_accuracy, "checkpoint": "model.pt", "device": str(device), "peak_cuda_memory_bytes": torch.cuda.max_memory_allocated() if device.type == "cuda" else None, "non_food_gate": False, "latency_gate": False, "regression_gate": False}
     cal = calibration(probs, truth) | {"temperature": temp, "fit_split": "validation", "evaluation_split": "test"}
     split_manifest = args.dataset / "split_manifest.json"
     dataset_manifest = json.loads(split_manifest.read_text()) if split_manifest.exists() else {"dataset_version": args.dataset_version, "sources": []}

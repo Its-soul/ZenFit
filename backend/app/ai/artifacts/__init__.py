@@ -7,7 +7,7 @@ from pathlib import Path
 import shutil
 from typing import Protocol
 
-REQUIRED_FILES=("model.pt","classes.json","config.json","calibration.json","open_set_thresholds.json","metrics.json","dataset_manifest.json","model_card.md")
+REQUIRED_FILES=("model.pt","classes.json","config.json","calibration.json","open_set_thresholds.json","metrics.json","dataset_manifest.json","release_evidence.json","model_card.md")
 
 
 def sha256(path: Path) -> str:
