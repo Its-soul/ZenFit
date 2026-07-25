@@ -1,0 +1,6 @@
+{
+  "name": "ZenFit Elite",
+  "description": "High-performance fitness & recovery platform featuring daily workout tracking, AI nutrition analysis, HRV recovery scores, and custom training plans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

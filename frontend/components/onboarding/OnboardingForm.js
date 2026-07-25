@@ -103,7 +103,7 @@ export default function OnboardingForm() {
       <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] xl:gap-10">
         <div className="min-w-0">
           <div className="mb-7 flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zenCream text-slate-950"><Target className="h-5 w-5" /></div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-300 to-teal-500 text-slate-950 shadow-[0_10px_28px_rgba(52,211,153,0.2)]"><Target className="h-5 w-5" /></div>
             <div className="min-w-0"><p className="text-sm font-semibold text-zenSage">Welcome to ZenFit</p><h1 className="text-[clamp(1.75rem,5vw,2.25rem)] font-semibold leading-tight tracking-[-0.02em]">Let&apos;s protect your momentum.</h1></div>
           </div>
           <p className="mb-6 max-w-xl text-sm leading-6 text-muted">ZenFit starts by understanding what usually breaks consistency. The first plan is built to survive real life.</p>

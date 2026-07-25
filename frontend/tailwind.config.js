@@ -10,14 +10,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#070907",
-        panel: "#101610",
+        background: "#070B12",
+        panel: "#0F172A",
         borderSoft: "rgba(255,255,255,0.14)",
-        cyanGlow: "#8FE8C5",
+        cyanGlow: "#67E8F9",
         limeGlow: "#BEEA75",
         coralGlow: "#F6A66D",
         zenCream: "#F5F1E8",
-        zenSage: "#8FE8C5",
+        zenSage: "#6EE7B7",
         zenGold: "#F6C779"
       },
       boxShadow: {

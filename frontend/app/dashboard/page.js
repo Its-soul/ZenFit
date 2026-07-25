@@ -165,7 +165,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell user={user} onLogout={logout}>
-      <div className="space-y-5 pb-24 md:pb-0">
+      <div className="mx-auto max-w-[96rem] space-y-5 pb-24 md:pb-0">
         <MomentumHero momentum={momentum} userName={user?.full_name?.split(" ")[0]} notice={notice} error={error} />
 
         <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">

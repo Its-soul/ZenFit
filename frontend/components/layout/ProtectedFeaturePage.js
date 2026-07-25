@@ -1,7 +1,6 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { SurfacePanel } from "@/components/common/SurfacePanel";
 import { useAuth } from "@/hooks/useAuth";
 
 export function ProtectedFeaturePage({ title, description, children }) {
@@ -17,11 +16,14 @@ export function ProtectedFeaturePage({ title, description, children }) {
 
   return (
     <AppShell user={user} onLogout={logout}>
-      <SurfacePanel className="min-w-0 p-[clamp(1rem,3vw,1.5rem)]">
-        <h1 className="break-words text-[clamp(1.75rem,5vw,2rem)] font-semibold">{title}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">{description}</p>
-        <div className="mt-6">{children}</div>
-      </SurfacePanel>
+      <div className="mx-auto max-w-[96rem] animate-page-in">
+        <header className="mb-6">
+          <p className="eyebrow">Your plan, backed by your data</p>
+          <h1 className="mt-2 break-words text-[clamp(1.8rem,5vw,2.5rem)] font-black tracking-[-0.035em]">{title}</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-base">{description}</p>
+        </header>
+        <div>{children}</div>
+      </div>
     </AppShell>
   );
 }

@@ -34,7 +34,7 @@ export default function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="panel w-full max-w-md rounded-2xl p-8">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-zenCream text-slate-950">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-300 to-teal-500 text-slate-950 shadow-[0_10px_28px_rgba(52,211,153,0.2)]">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
