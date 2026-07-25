@@ -1,48 +1,80 @@
-import { ArrowRight, Play, ShieldCheck, Sparkles } from "lucide-react";
+import { Bot, Dumbbell, UtensilsCrossed, Waves } from "lucide-react";
 import Link from "next/link";
 
-import HeroDashboardPreview from "./HeroDashboardPreview";
+import LandingBackgroundVideo from "./LandingBackgroundVideo";
+
+const featureCards = [
+  {
+    title: "Personalized Workouts",
+    body: "Adaptive plans that evolve with your progress. Never plateau, always improve.",
+    icon: Dumbbell
+  },
+  {
+    title: "AI Coach",
+    body: "Real-time guidance and habit analysis. Your coach is available 24/7.",
+    icon: Bot
+  },
+  {
+    title: "Nutrition Tracking",
+    body: "Seamless macro and calorie tracking. Fuel your body for optimal recovery.",
+    icon: UtensilsCrossed
+  }
+];
 
 export default function LandingHero() {
   return (
-    <section className="relative isolate overflow-hidden border-b border-slate-800/80 bg-[#070b12]">
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_20%,rgba(16,185,129,0.18),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(20,184,166,0.12),transparent_25%),linear-gradient(180deg,#070b12,#0b1220)]" />
-      <nav aria-label="Public navigation" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
-        <Link href="/" className="flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-zenSage">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-300 to-teal-500 text-lg font-black text-slate-950 shadow-[0_10px_28px_rgba(52,211,153,0.22)]">Z</span>
-          <span><span className="block font-bold tracking-tight text-slate-100">ZenFit</span><span className="block text-xs text-slate-400">Adaptive daily fitness</span></span>
+    <section className="relative isolate min-h-[92vh] overflow-hidden bg-[#eef5f4] text-slate-950">
+      <div aria-hidden="true" className="absolute inset-0 -z-30 bg-[linear-gradient(135deg,#f8fbff_0%,#e6f8ef_42%,#d7f2fb_100%)]" />
+      <LandingBackgroundVideo />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.58)_42%,rgba(247,250,252,0.76)_100%)]" />
+
+      <nav aria-label="Public navigation" className="mx-auto flex w-[min(75rem,calc(100%-2rem))] items-center justify-between gap-4 rounded-2xl border border-white/65 bg-white/42 px-4 py-3 shadow-[0_20px_70px_rgba(15,23,42,0.13)] backdrop-blur-md sm:mt-5 sm:px-6">
+        <Link href="/" className="flex items-center gap-2 rounded-xl text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+          <Waves className="h-8 w-8 text-teal-400" aria-hidden="true" />
+          <span className="text-2xl font-black tracking-normal">ZenFit</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <Link href="/auth/login" className="inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold text-slate-200 outline-none hover:bg-slate-800/70 focus-visible:ring-2 focus-visible:ring-zenSage">Sign in</Link>
-          <Link href="/auth/register" className="hidden min-h-11 items-center rounded-xl bg-emerald-300 px-4 text-sm font-bold text-slate-950 outline-none hover:bg-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-100 sm:inline-flex">Get started</Link>
+        <div className="hidden items-center gap-8 text-sm font-medium text-slate-950 md:flex">
+          <Link href="#features" className="rounded-lg outline-none hover:text-teal-700 focus-visible:ring-2 focus-visible:ring-emerald-500">Features</Link>
+          <Link href="#how-it-works" className="rounded-lg outline-none hover:text-teal-700 focus-visible:ring-2 focus-visible:ring-emerald-500">How it works</Link>
+          <Link href="#pricing" className="rounded-lg outline-none hover:text-teal-700 focus-visible:ring-2 focus-visible:ring-emerald-500">Pricing</Link>
+          <Link href="#about" className="rounded-lg outline-none hover:text-teal-700 focus-visible:ring-2 focus-visible:ring-emerald-500">About</Link>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/auth/login" className="hidden min-h-10 items-center rounded-full px-4 text-sm font-medium text-slate-900 outline-none hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-emerald-500 sm:inline-flex">Sign in</Link>
+          <Link href="/auth/register" className="inline-flex min-h-11 items-center rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 px-5 text-sm font-black text-slate-950 shadow-[0_14px_38px_rgba(20,184,166,0.36)] outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-emerald-600">Build my plan</Link>
         </div>
       </nav>
 
-      <div className="mx-auto grid min-h-[calc(92vh-5rem)] max-w-7xl items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:py-20">
-        <div className="min-w-0 animate-page-in">
-          <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-emerald-300">
-            <Sparkles className="h-4 w-4" />
-            Guidance that adapts daily
-          </p>
-          <h1 className="mt-6 max-w-[13ch] text-[clamp(2.8rem,7vw,5.5rem)] font-black leading-[1.02] tracking-[-0.055em] text-slate-100">
-            Fitness that adapts to your <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 bg-clip-text text-transparent">real life.</span>
+      <div className="mx-auto flex min-h-[calc(92vh-5.5rem)] w-[min(75rem,calc(100%-2rem))] flex-col items-center justify-center px-1 pb-12 pt-12 text-center sm:px-6 lg:pt-16">
+        <div className="animate-page-in">
+          <h1 className="mx-auto max-w-3xl text-5xl font-black leading-[1.08] tracking-normal text-black sm:text-6xl lg:text-7xl">
+            Fitness guidance that adapts to your real life.
           </h1>
-          <p className="mt-6 max-w-2xl text-[clamp(1rem,1.7vw,1.15rem)] leading-8 text-slate-300">ZenFit brings workouts, recovery, nutrition, sleep, and supportive coaching into one clear plan shaped by what you actually log.</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/auth/register" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 via-teal-300 to-emerald-400 px-7 py-3.5 font-bold text-slate-950 shadow-[0_16px_38px_rgba(52,211,153,0.2)] outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-emerald-100">
-              Build my plan <ArrowRight className="h-4 w-4" />
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-950 sm:text-lg">
+            ZenFit helps you stay consistent with personalized workouts, recovery insights, nutrition tracking, and an AI coach that understands your habits.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link href="/auth/register" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 px-8 text-base font-black text-slate-950 shadow-[0_20px_45px_rgba(20,184,166,0.32)] outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-emerald-700 sm:w-auto">
+              Build my plan
             </Link>
-            <Link href="/auth/login" className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/70 px-7 py-3.5 font-semibold text-slate-100 outline-none hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-zenSage">
-              <Play className="h-4 w-4 fill-current" /> Continue my plan
+            <Link href="/auth/login" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/80 bg-white/22 px-8 text-base font-semibold text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] outline-none backdrop-blur-md transition-colors hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-emerald-700 sm:w-auto">
+              Sign in
             </Link>
           </div>
-          <p className="mt-6 flex items-start gap-2 text-sm leading-6 text-slate-400"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Your account and health data stay behind authenticated backend APIs.</p>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[38rem] lg:max-w-none">
-          <div aria-hidden="true" className="absolute -inset-6 rounded-[3rem] bg-emerald-400/10 blur-3xl" />
-          <HeroDashboardPreview />
+        <div id="features" className="mt-14 grid w-full max-w-4xl gap-5 text-left md:grid-cols-3">
+          {featureCards.map(({ title, body, icon: Icon }) => (
+            <article key={title} className="min-h-60 rounded-2xl border border-white/70 bg-white/38 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.13)] backdrop-blur-md">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-400/18 text-teal-500 shadow-[0_0_26px_rgba(20,184,166,0.32)]">
+                <Icon className="h-10 w-10" aria-hidden="true" />
+              </div>
+              <h2 className="mt-7 text-xl font-black tracking-normal text-black">{title}</h2>
+              <p className="mt-3 text-base leading-6 text-slate-950">{body}</p>
+            </article>
+          ))}
         </div>
+
       </div>
     </section>
   );
