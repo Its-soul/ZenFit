@@ -6,12 +6,23 @@ build/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Environment variables
 .env
-.env.local
-uploads/
-postgres_data/
-redis_data/
-qdrant_data/
+.env.*
+!.env.example
+
+# Private / Internal Intelligence
+private/
+secrets/
+credentials/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# ML and AI Data
 data/models/
 data/artifacts/
 data/raw/kaggle/
@@ -23,4 +34,23 @@ data/evaluation/open_set/private/
 data/evaluation/open_set/prediction_evidence*.json
 data/evaluation/open_set/open_set_evaluation*.json
 data/evaluation/open_set/recommended_thresholds*.json
+*.pt
+*.pth
+*.onnx
+*.safetensors
+datasets/private/
+data/private/
+
+# Logs and Experiments
+runs/
+wandb/
+mlruns/
+logs/
+checkpoints/
+
+# Other data
+uploads/
+postgres_data/
+redis_data/
+qdrant_data/
 data/uploads/
