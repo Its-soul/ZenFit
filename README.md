@@ -44,19 +44,17 @@ python -m app.workers.main
 
 See [deployment/README.md](deployment/README.md) for PostgreSQL, Redis, Qdrant, artifact storage, Render, and Railway details.
 
-## AI and training
+## Documentation
 
-The only AI runtime package is `backend/app/ai/`. Offline acquisition, preparation, training, evaluation, promotion, and rollback live in `backend/training/` and are never invoked by web startup.
+- [High-Level Design (HLD)](docs/HLD.md)
+- [Low-Level Design (LLD)](docs/LLD.md)
+- [API Documentation](docs/API.md)
+- [Database Schema](docs/DATABASE.md)
+- [Security](docs/SECURITY.md)
 
-Initial deployments must use:
+## Core Capabilities
 
-```env
-AI_HEAVY_MODELS_ENABLED=false
-AI_PREWARM_MODELS=false
-```
+- **Frontend**: Next.js website for user interaction.
+- **Backend**: FastAPI core providing robust data services.
+- **Data Layer**: PostgreSQL, Redis, and Qdrant.
 
-The Stage-1 runtime has no cloud meal-vision dependency. Meal Scan fails safely to manual logging when local heavy models are disabled. Build the backend image with `INSTALL_AI=false`.
-
-Runtime dependencies are in `backend/requirements.txt`; optional heavy AI dependencies are in `backend/requirements-ai.txt`; training dependencies are in `backend/requirements-training.txt`.
-
-Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/FILE_MAP.md](docs/FILE_MAP.md).
